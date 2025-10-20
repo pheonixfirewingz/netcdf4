@@ -3,7 +3,6 @@
 ![Build status](https://github.com/parro-it/netcdf4/workflows/Node.js%20CI/badge.svg?branch=master)
 [![NPM Version](https://img.shields.io/npm/v/netcdf4.svg)](https://npmjs.org/package/netcdf4)
 
-
 NodeJS addon for reading and writing the files in the
 [Network Common Data Form (NetCDF)](https://www.unidata.ucar.edu/software/netcdf/)
 version <= 4,
@@ -11,42 +10,57 @@ built upon the C-library for netcdf.
 
 ## Installation
 
-`netcdf4-js` is built with `nodejs` >= 4.x
+`netcdf4-js` requires `nodejs` >= 18.0.0
 
 Install using `npm`:
 
-```
-$ npm install netcdf4
-```
-
-Prerequisites:
-
-You will need `libnetcdf` >= 4.x installed.
-
-### On Linux/Unix/OSX
-
-* Install NetCDF4 using your package manager, e.g., on Ubuntu/Debian:
-```
-$ sudo apt-get install libnetcdf-dev
-```
-or download it [here](https://www.unidata.ucar.edu/downloads/netcdf/index.jsp)
-* Make sure your system fulfills all the prerequisites of [node-gyp](https://github.com/nodejs/node-gyp#on-unix)
-
-### On Windows:
-
-* Install NetCDF4 from [here](https://www.unidata.ucar.edu/downloads/netcdf/index.jsp)
-* Make sure to select at least "dependencies", "headers" and "libraries" to install in the NetCDF installation wizard
-* Install the build tools as described [here](https://github.com/nodejs/node-gyp#on-windows)
-* Set the environment variable `NETCDF_DIR` to your NetCDF installation, e.g.,
-``` bash
-C:\> set NETCDF_DIR=C:\Program Files\netCDF 4.6.1
+```bash
+npm install netcdf4
 ```
 
+### Prerequisites
+
+The package now automatically manages NetCDF dependencies using vcpkg. During installation:
+
+1. vcpkg will be automatically downloaded and bootstrapped
+2. NetCDF and its dependencies (HDF5, zlib, curl, etc.) will be installed via vcpkg
+3. The native module will be compiled with these dependencies
+
+**You need to have the following build tools installed:**
+
+#### Windows
+* Visual Studio 2019 or later (with C++ development tools)
+* Or Visual Studio Build Tools 2019 or later
+* Git (for vcpkg)
+
+#### Linux
+* GCC/G++ or Clang
+* CMake >= 3.10
+* Git (for vcpkg)
+* Build essentials: `sudo apt-get install build-essential cmake git`
+
+#### macOS
+* Xcode Command Line Tools: `xcode-select --install`
+* Git (for vcpkg)
+
+### Manual Installation (Alternative)
+
+If you prefer to manage NetCDF dependencies yourself:
+
+1. Install NetCDF4 using your system package manager:
+   * **Linux**: `sudo apt-get install libnetcdf-dev`
+   * **macOS**: `brew install netcdf`
+   * **Windows**: Download from [NetCDF website](https://www.unidata.ucar.edu/downloads/netcdf/index.jsp)
+
+2. Skip the automated vcpkg setup by setting an environment variable:
+   ```bash
+   SKIP_VCPKG_SETUP=1 npm install netcdf4
+   ```
 
 ## Usage
 
 Open files with
-```
+```javascript
 var netcdf4 = require("netcdf4");
 
 var file = new netcdf4.File("test/testrh.nc", "r");
@@ -55,7 +69,7 @@ File modes are `"r"` for "reading", `"w"` for "writing", `"c"` for
 "creation", and `"c!"` for "overwriting".
 
 Then you can read variables using `read` or `readSlice`. The following example reads values at positions 5 to 15:
-```
+```javascript
 console.log(file.root.variables['var1'].readSlice(5, 10));
 ```
 

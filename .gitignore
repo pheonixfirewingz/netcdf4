@@ -6,3 +6,7 @@ GRTAGS
 GSYMS
 GTAGS
 .vscode
+.vs
+.idea
+vcpkg/
+vcpkg_installed/

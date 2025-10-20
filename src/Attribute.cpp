@@ -80,100 +80,130 @@ void Attribute::GetValue(v8::Local<v8::String> property, const v8::PropertyCallb
             retval = nc_get_att(obj->parent_id, obj->var_id, obj->name.c_str(), v);
             if (len == 1) {
                 info.GetReturnValue().Set(v8::Integer::New(isolate, v[0]));
+                delete[] v;
             } else {
-                info.GetReturnValue().Set(v8::Int8Array::New(v8::ArrayBuffer::New(isolate, v, len * 1), 0, len));
+                v8::Local<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(isolate, len * 1);
+                memcpy(buffer->GetBackingStore()->Data(), v, len * 1);
+                info.GetReturnValue().Set(v8::Int8Array::New(buffer, 0, len));
+                delete[] v;
             }
-            delete[] v;
         } break;
         case NC_SHORT: {
             int16_t* v = new int16_t[len];
             retval = nc_get_att(obj->parent_id, obj->var_id, obj->name.c_str(), v);
             if (len == 1) {
                 info.GetReturnValue().Set(v8::Integer::New(isolate, v[0]));
+                delete[] v;
             } else {
-                info.GetReturnValue().Set(v8::Int16Array::New(v8::ArrayBuffer::New(isolate, v, len * 2), 0, len));
+                v8::Local<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(isolate, len * 2);
+                memcpy(buffer->GetBackingStore()->Data(), v, len * 2);
+                info.GetReturnValue().Set(v8::Int16Array::New(buffer, 0, len));
+                delete[] v;
             }
-            delete[] v;
         } break;
         case NC_INT: {
             int32_t* v = new int32_t[len];
             retval = nc_get_att(obj->parent_id, obj->var_id, obj->name.c_str(), v);
             if (len == 1) {
                 info.GetReturnValue().Set(v8::Integer::New(isolate, v[0]));
+                delete[] v;
             } else {
-                info.GetReturnValue().Set(v8::Int32Array::New(v8::ArrayBuffer::New(isolate, v, len * 4), 0, len));
+                v8::Local<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(isolate, len * 4);
+                memcpy(buffer->GetBackingStore()->Data(), v, len * 4);
+                info.GetReturnValue().Set(v8::Int32Array::New(buffer, 0, len));
+                delete[] v;
             }
-            delete[] v;
         } break;
         case NC_FLOAT: {
             float* v = new float[len];
             retval = nc_get_att(obj->parent_id, obj->var_id, obj->name.c_str(), v);
             if (len == 1) {
                 info.GetReturnValue().Set(v8::Number::New(isolate, v[0]));
+                delete[] v;
             } else {
-                info.GetReturnValue().Set(v8::Float32Array::New(v8::ArrayBuffer::New(isolate, v, len * 4), 0, len));
+                v8::Local<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(isolate, len * 4);
+                memcpy(buffer->GetBackingStore()->Data(), v, len * 4);
+                info.GetReturnValue().Set(v8::Float32Array::New(buffer, 0, len));
+                delete[] v;
             }
-            delete[] v;
         } break;
         case NC_DOUBLE: {
             double* v = new double[len];
             retval = nc_get_att(obj->parent_id, obj->var_id, obj->name.c_str(), v);
             if (len == 1) {
                 info.GetReturnValue().Set(v8::Number::New(isolate, v[0]));
+                delete[] v;
             } else {
-                info.GetReturnValue().Set(v8::Float64Array::New(v8::ArrayBuffer::New(isolate, v, len * 8), 0, len));
+                v8::Local<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(isolate, len * 8);
+                memcpy(buffer->GetBackingStore()->Data(), v, len * 8);
+                info.GetReturnValue().Set(v8::Float64Array::New(buffer, 0, len));
+                delete[] v;
             }
-            delete[] v;
         } break;
         case NC_UBYTE: {
             uint8_t* v = new uint8_t[len];
             retval = nc_get_att(obj->parent_id, obj->var_id, obj->name.c_str(), v);
             if (len == 1) {
                 info.GetReturnValue().Set(v8::Integer::New(isolate, v[0]));
+                delete[] v;
             } else {
-                info.GetReturnValue().Set(v8::Uint8Array::New(v8::ArrayBuffer::New(isolate, v, len * 1), 0, len));
+                v8::Local<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(isolate, len * 1);
+                memcpy(buffer->GetBackingStore()->Data(), v, len * 1);
+                info.GetReturnValue().Set(v8::Uint8Array::New(buffer, 0, len));
+                delete[] v;
             }
-            delete[] v;
         } break;
         case NC_USHORT: {
             uint16_t* v = new uint16_t[len];
             retval = nc_get_att(obj->parent_id, obj->var_id, obj->name.c_str(), v);
             if (len == 1) {
                 info.GetReturnValue().Set(v8::Integer::New(isolate, v[0]));
+                delete[] v;
             } else {
-                info.GetReturnValue().Set(v8::Uint16Array::New(v8::ArrayBuffer::New(isolate, v, len * 2), 0, len));
+                v8::Local<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(isolate, len * 2);
+                memcpy(buffer->GetBackingStore()->Data(), v, len * 2);
+                info.GetReturnValue().Set(v8::Uint16Array::New(buffer, 0, len));
+                delete[] v;
             }
-            delete[] v;
         } break;
         case NC_UINT: {
             uint32_t* v = new uint32_t[len];
             retval = nc_get_att(obj->parent_id, obj->var_id, obj->name.c_str(), v);
             if (len == 1) {
                 info.GetReturnValue().Set(v8::Integer::NewFromUnsigned(isolate, v[0]));
+                delete[] v;
             } else {
-                info.GetReturnValue().Set(v8::Uint32Array::New(v8::ArrayBuffer::New(isolate, v, len * 4), 0, len));
+                v8::Local<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(isolate, len * 4);
+                memcpy(buffer->GetBackingStore()->Data(), v, len * 4);
+                info.GetReturnValue().Set(v8::Uint32Array::New(buffer, 0, len));
+                delete[] v;
             }
-            delete[] v;
         } break;
         case NC_INT64: {
             int64_t* v = new int64_t[len];
             retval = nc_get_att(obj->parent_id, obj->var_id, obj->name.c_str(), v);
             if (len == 1) {
                 info.GetReturnValue().Set(v8::Integer::New(isolate, static_cast<int32_t>(v[0])));
+                delete[] v;
             } else {
-                info.GetReturnValue().Set(v8::Int32Array::New(v8::ArrayBuffer::New(isolate, v, len * 8), 0, len));
+                v8::Local<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(isolate, len * 8);
+                memcpy(buffer->GetBackingStore()->Data(), v, len * 8);
+                info.GetReturnValue().Set(v8::Int32Array::New(buffer, 0, len));
+                delete[] v;
             }
-            delete[] v;
         } break;
         case NC_UINT64: {
             uint64_t* v = new uint64_t[len];
             retval = nc_get_att(obj->parent_id, obj->var_id, obj->name.c_str(), v);
             if (len == 1) {
                 info.GetReturnValue().Set(v8::Integer::NewFromUnsigned(isolate, static_cast<uint32_t>(v[0])));
+                delete[] v;
             } else {
-                info.GetReturnValue().Set(v8::Uint32Array::New(v8::ArrayBuffer::New(isolate, v, len * 8), 0, len));
+                v8::Local<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(isolate, len * 8);
+                memcpy(buffer->GetBackingStore()->Data(), v, len * 8);
+                info.GetReturnValue().Set(v8::Uint32Array::New(buffer, 0, len));
+                delete[] v;
             }
-            delete[] v;
         } break;
         case NC_CHAR:
         case NC_STRING: {

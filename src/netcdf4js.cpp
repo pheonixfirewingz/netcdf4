@@ -14,5 +14,7 @@ void InitAll(v8::Local<v8::Object> exports) {
     Attribute::Init(exports);
 }
 
-NODE_MODULE(netcdf4, InitAll)
+NODE_MODULE_INIT() {
+    InitAll(exports);
+}
 }  // namespace netcdf4js

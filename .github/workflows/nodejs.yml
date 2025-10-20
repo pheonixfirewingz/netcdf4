@@ -1,33 +1,69 @@
-# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
-
 name: Node.js CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, main ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, main ]
 
 jobs:
-  build:
-
-    runs-on: ubuntu-latest
-
+  build-and-test:
+    name: Build and Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    
     strategy:
-      max-parallel: 2
+      fail-fast: false
       matrix:
-        node-version: [8.x, 10.x, 12.x, 13.x]
-
+        os: [ubuntu-latest, windows-latest]
+        node-version: [18.x, 20.x, 22.x]
+    
     steps:
-    - uses: actions/checkout@v2
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v1
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: false
+    
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
-    - run: sudo apt update
-    - run: sudo apt install -y libnetcdf-dev 
-    - run: npm install
-    - run: npm test
+    
+    - name: Install build tools (Ubuntu)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake git curl zip unzip tar pkg-config
+    
+    - name: Install build tools (Windows)
+      if: runner.os == 'Windows'
+      uses: microsoft/setup-msbuild@v2
+    
+    - name: Setup vcpkg cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          vcpkg
+          vcpkg_installed
+        key: ${{ runner.os }}-vcpkg-${{ hashFiles('**/package.json') }}
+        restore-keys: |
+          ${{ runner.os }}-vcpkg-
+    
+    - name: Install dependencies and build
+      run: npm install
       env:
         CI: true
+    
+    - name: Run tests
+      run: npm test
+      env:
+        CI: true
+    
+    - name: Upload build artifacts on failure
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-logs-${{ matrix.os }}-node-${{ matrix.node-version }}
+        path: |
+          build/
+          *.log
+        retention-days: 7
