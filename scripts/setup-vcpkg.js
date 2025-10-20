@@ -78,3 +78,16 @@ try {
 }
 
 console.log('vcpkg setup complete!');
+
+// Verify that netcdf.h is actually available
+const vcpkgInstalledDir = path.join('vcpkg_installed', triplet);
+const includeDir = path.join(vcpkgInstalledDir, 'include');
+const netcdfHeader = path.join(includeDir, 'netcdf.h');
+
+if (fs.existsSync(netcdfHeader)) {
+  console.log(`✓ Verified netcdf.h exists at: ${netcdfHeader}`);
+} else {
+  console.error(`✗ ERROR: netcdf.h not found at: ${netcdfHeader}`);
+  console.error('vcpkg installation may have failed or be incomplete');
+  process.exit(1);
+}

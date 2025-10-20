@@ -5,9 +5,10 @@
   "main": "./build/Release/netcdf4.node",
   "scripts": {
     "preinstall": "node scripts/setup-vcpkg.js",
-    "install": "node-gyp configure build",
+    "install": "node scripts/verify-build-deps.js && node-gyp configure build",
     "postinstall": "node scripts/copy-deps.js",
-    "test": "mocha"
+    "test": "mocha",
+    "verify-deps": "node scripts/verify-build-deps.js"
   },
   "author": {
     "name": "Sven Willner",

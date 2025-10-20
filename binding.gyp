@@ -20,10 +20,13 @@
       "conditions": [
         ['OS=="win"', {
           "variables": {
-            "vcpkg_installed%": "<(module_root_dir)/vcpkg_installed/x64-windows"
+            "vcpkg_installed%": "<(module_root_dir)/vcpkg_installed/x64-windows",
+            "netcdf_include%": "<!(node -p \"require('path').resolve(process.cwd(), 'vcpkg_installed', 'x64-windows', 'include')\")",
+            "netcdf_lib%": "<!(node -p \"require('path').resolve(process.cwd(), 'vcpkg_installed', 'x64-windows', 'lib')\")"
           },
           "include_dirs": [
-            "<(vcpkg_installed)/include"
+            "<(vcpkg_installed)/include",
+            "<(netcdf_include)"
           ],
           "libraries": [
             "<(vcpkg_installed)/lib/netcdf.lib"
@@ -31,12 +34,17 @@
           "msvs_settings": {
             "VCLinkerTool": {
               "AdditionalLibraryDirectories": [
-                "<(vcpkg_installed)/lib"
+                "<(vcpkg_installed)/lib",
+                "<(netcdf_lib)"
               ]
             },
             "VCCLCompilerTool": {
               "AdditionalOptions": [ "/std:c++20" ],
-              "ExceptionHandling": 1
+              "ExceptionHandling": 1,
+              "AdditionalIncludeDirectories": [
+                "<(vcpkg_installed)/include",
+                "<(netcdf_include)"
+              ]
             }
           },
           "defines": [
