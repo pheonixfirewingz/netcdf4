@@ -19,8 +19,8 @@ if (platform === 'win32') {
 
 console.log('Verifying build dependencies...');
 
-// Check if vcpkg_installed directory exists
-const vcpkgInstalledDir = path.join('vcpkg_installed', triplet);
+// Check if vcpkg installed directory exists
+const vcpkgInstalledDir = path.join('vcpkg', 'installed', triplet);
 if (!fs.existsSync(vcpkgInstalledDir)) {
   console.error(`✗ ERROR: vcpkg installation directory not found: ${vcpkgInstalledDir}`);
   console.error('Please run: npm run preinstall');

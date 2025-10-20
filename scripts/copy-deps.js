@@ -7,11 +7,11 @@ const platform = os.platform();
 let vcpkgDir;
 
 if (platform === 'win32') {
-  vcpkgDir = 'vcpkg_installed/x64-windows/bin';
+  vcpkgDir = 'vcpkg/installed/x64-windows/bin';
 } else if (platform === 'linux') {
-  vcpkgDir = 'vcpkg_installed/x64-linux/lib';
+  vcpkgDir = 'vcpkg/installed/x64-linux/lib';
 } else if (platform === 'darwin') {
-  vcpkgDir = 'vcpkg_installed/x64-osx/lib';
+  vcpkgDir = 'vcpkg/installed/x64-osx/lib';
 } else {
   console.log('Unknown platform, skipping dependency copy');
   process.exit(0);

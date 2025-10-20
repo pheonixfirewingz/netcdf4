@@ -1,9 +1,6 @@
 {
   "targets": [
     {
-      "libraries": [
-        "-lnetcdf"
-      ],
       "sources": [
         "src/Group.cpp",
         "src/File.cpp",
@@ -20,9 +17,9 @@
       "conditions": [
         ['OS=="win"', {
           "variables": {
-            "vcpkg_installed%": "<(module_root_dir)/vcpkg_installed/x64-windows",
-            "netcdf_include%": "<!(node -p \"require('path').resolve(process.cwd(), 'vcpkg_installed', 'x64-windows', 'include')\")",
-            "netcdf_lib%": "<!(node -p \"require('path').resolve(process.cwd(), 'vcpkg_installed', 'x64-windows', 'lib')\")"
+            "vcpkg_installed%": "<(module_root_dir)/vcpkg/installed/x64-windows",
+            "netcdf_include%": "<!(node -p \"require('path').resolve(process.cwd(), 'vcpkg', 'installed', 'x64-windows', 'include')\")",
+            "netcdf_lib%": "<!(node -p \"require('path').resolve(process.cwd(), 'vcpkg', 'installed', 'x64-windows', 'lib')\")"
           },
           "include_dirs": [
             "<(vcpkg_installed)/include",
@@ -54,7 +51,7 @@
         }],
         ['OS=="linux"', {
           "variables": {
-            "vcpkg_installed%": "<(module_root_dir)/vcpkg_installed/x64-linux"
+            "vcpkg_installed%": "<(module_root_dir)/vcpkg/installed/x64-linux"
           },
           "include_dirs": [
             "<(vcpkg_installed)/include"
@@ -71,7 +68,7 @@
         }],
         ['OS=="mac"', {
           "variables": {
-            "vcpkg_installed%": "<(module_root_dir)/vcpkg_installed/x64-osx"
+            "vcpkg_installed%": "<(module_root_dir)/vcpkg/installed/x64-osx"
           },
           "include_dirs": [
             "<(vcpkg_installed)/include"

@@ -80,7 +80,7 @@ try {
 console.log('vcpkg setup complete!');
 
 // Verify that netcdf.h is actually available
-const vcpkgInstalledDir = path.join('vcpkg_installed', triplet);
+const vcpkgInstalledDir = path.join('vcpkg', 'installed', triplet);
 const includeDir = path.join(vcpkgInstalledDir, 'include');
 const netcdfHeader = path.join(includeDir, 'netcdf.h');
 
