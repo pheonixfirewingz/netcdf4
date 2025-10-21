@@ -1,12 +1,15 @@
-#include <node.h>
 #include "Attribute.h"
 #include "Dimension.h"
 #include "File.h"
 #include "Group.h"
 #include "Variable.h"
+#include <node.h>
 
-namespace netcdf4js {
-void InitAll(v8::Local<v8::Object> exports) {
+
+namespace netcdf4js
+{
+void InitAll(v8::Local<v8::Object> exports)
+{
     File::Init(exports);
     Variable::Init(exports);
     Group::Init(exports);
@@ -14,7 +17,8 @@ void InitAll(v8::Local<v8::Object> exports) {
     Attribute::Init(exports);
 }
 
-NODE_MODULE_INIT() {
+NODE_MODULE_INIT()
+{
     InitAll(exports);
 }
-}  // namespace netcdf4js
+} // namespace netcdf4js

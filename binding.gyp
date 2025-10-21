@@ -60,6 +60,7 @@
             "<(vcpkg_installed)/lib/libnetcdf.a",
             "<(vcpkg_installed)/lib/libhdf5_hl.a",
             "<(vcpkg_installed)/lib/libhdf5.a",
+            "<(vcpkg_installed)/lib/libsz.a",
             "<(vcpkg_installed)/lib/libz.a",
             "<(vcpkg_installed)/lib/libcurl.a",
             "-ldl",
@@ -77,6 +78,7 @@
             "<(vcpkg_installed)/lib/libnetcdf.a",
             "<(vcpkg_installed)/lib/libhdf5_hl.a",
             "<(vcpkg_installed)/lib/libhdf5.a",
+            "<(vcpkg_installed)/lib/libsz.a",
             "<(vcpkg_installed)/lib/libz.a",
             "<(vcpkg_installed)/lib/libcurl.a"
           ],
