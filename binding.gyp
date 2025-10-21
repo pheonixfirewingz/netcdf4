@@ -69,7 +69,7 @@
         }],
         ['OS=="mac"', {
           "variables": {
-            "vcpkg_installed%": "<(module_root_dir)/vcpkg/installed/x64-osx"
+            "vcpkg_installed%": "<(module_root_dir)/vcpkg/installed/arm64-osx"
           },
           "include_dirs": [
             "<(vcpkg_installed)/include"

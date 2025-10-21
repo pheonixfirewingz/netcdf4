@@ -21,7 +21,7 @@ if (platform === 'win32') {
 } else if (platform === 'linux') {
   triplet = 'x64-linux';
 } else if (platform === 'darwin') {
-  triplet = 'x64-osx';
+  triplet = 'arm64-osx';
 } else {
   console.error(`Unsupported platform: ${platform}`);
   process.exit(1);
