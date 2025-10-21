@@ -1,13 +1,15 @@
 {
   "name": "nodenetcdf",
-  "version": "4.9.3",
+  "version": "4.9.3.1",
   "description": "Read and write NodeNetCDF files",
   "main": "./build/Release/nodenetcdf.node",
+  "types": "./index.d.ts",
   "scripts": {
     "preinstall": "node scripts/setup-vcpkg.js",
     "install": "node scripts/verify-build-deps.js && node-gyp configure build",
     "postinstall": "node scripts/copy-deps.js",
-    "test": "mocha",
+    "test": "npm run test:types && mocha",
+    "test:types": "node scripts/test-types.js",
     "verify-deps": "node scripts/verify-build-deps.js"
   },
   "author": {
@@ -30,6 +32,8 @@
   },
   "devDependencies": {
     "chai": "^6.2.0",
-    "mocha": "^11.7.4"
+    "mocha": "^11.7.4",
+    "typescript": "^5.7.2",
+    "@types/node": "^22.10.5"
   }
 }
