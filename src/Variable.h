@@ -4,16 +4,24 @@
 #include <netcdf.h>
 #include <node.h>
 #include <node_object_wrap.h>
+#include <array>
 
 namespace netcdf4js {
 
 class Variable : public node::ObjectWrap {
   public:
     static void Init(v8::Local<v8::Object> exports);
-    Variable(const int& id_, const int& parent_id_);
-    bool get_name(char* name) const;
+    Variable(int id_, int parent_id_) noexcept;
+    
+    [[nodiscard]] bool get_name(char* name) const noexcept;
 
   private:
+    // Delete copy and move operations for safety
+    Variable(const Variable&) = delete;
+    Variable& operator=(const Variable&) = delete;
+    Variable(Variable&&) = delete;
+    Variable& operator=(Variable&&) = delete;
+
     static void Read(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void ReadSlice(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void ReadStridedSlice(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -21,6 +29,7 @@ class Variable : public node::ObjectWrap {
     static void WriteSlice(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void WriteStridedSlice(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void AddAttribute(const v8::FunctionCallbackInfo<v8::Value>& args);
+    
     static void GetId(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info);
     static void GetType(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info);
     static void GetDimensions(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info);
@@ -46,14 +55,25 @@ class Variable : public node::ObjectWrap {
     static void GetCompressionLevel(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info);
     static void SetCompressionLevel(v8::Local<v8::String> property, v8::Local<v8::Value> val, const v8::PropertyCallbackInfo<void>& info);
     static void Inspect(const v8::FunctionCallbackInfo<v8::Value>& args);
+    
     static v8::Persistent<v8::Function> constructor;
-    static const unsigned char type_sizes[];
-    static const char* type_names[];
-    int id;
-    int parent_id;
-    nc_type type;
-    int ndims;
+    
+    // Use constexpr arrays for compile-time constants
+    static constexpr std::array<unsigned char, 11> type_sizes = {
+        1, 1, 2, 4, 4, 8, 1, 2, 4, 8, 0
+    };
+    
+    static constexpr std::array<const char*, 11> type_names = {
+        "byte", "char", "short", "int", "float", "double",
+        "ubyte", "ushort", "uint", "int64", "string"
+    };
+    
+    int id{-1};
+    int parent_id{-1};
+    nc_type type{NC_NAT};
+    int ndims{0};
 };
+
 }  // namespace netcdf4js
 
 #endif

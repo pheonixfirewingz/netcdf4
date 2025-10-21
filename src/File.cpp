@@ -9,7 +9,7 @@ namespace netcdf4js {
 
 v8::Persistent<v8::Function> File::constructor;
 
-File::File(const int& id_) : id(id_), closed(false) {}
+File::File(int id_) noexcept : id(id_), closed(false) {}
 
 File::~File() {
     if (!closed) {
@@ -36,29 +36,25 @@ void File::New(const v8::FunctionCallbackInfo<v8::Value>& args) {
     v8::Isolate* isolate = args.GetIsolate();
 
     if (args.Length() < 2) {
-        isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "Wrong number of arguments", v8::NewStringType::kNormal).ToLocalChecked()));
+        isolate->ThrowException(v8::Exception::TypeError(
+            v8::String::NewFromUtf8(isolate, "Wrong number of arguments", v8::NewStringType::kNormal)
+                .ToLocalChecked()));
         return;
     }
 
     if (args.IsConstructCall()) {
-        std::string filename = *v8::String::Utf8Value(
-#if NODE_MAJOR_VERSION >= 8
-            isolate,
-#endif
-            args[0]->ToString(isolate->GetCurrentContext()).ToLocalChecked());
-        std::string mode_arg = *v8::String::Utf8Value(
-#if NODE_MAJOR_VERSION >= 8
-            isolate,
-#endif
-            args[1]->ToString(isolate->GetCurrentContext()).ToLocalChecked());
+        const std::string filename = *v8::String::Utf8Value(
+            isolate, args[0]->ToString(isolate->GetCurrentContext()).ToLocalChecked());
+        const std::string mode_arg = *v8::String::Utf8Value(
+            isolate, args[1]->ToString(isolate->GetCurrentContext()).ToLocalChecked());
+        
         int format = NC_NETCDF4;
-        int id;
+        int id = -1;
+        
         if (args.Length() > 2) {
-            std::string format_arg = *v8::String::Utf8Value(
-#if NODE_MAJOR_VERSION >= 8
-                isolate,
-#endif
-                args[2]->ToString(isolate->GetCurrentContext()).ToLocalChecked());
+            const std::string format_arg = *v8::String::Utf8Value(
+                isolate, args[2]->ToString(isolate->GetCurrentContext()).ToLocalChecked());
+            
             if (format_arg == "classic") {
                 format = 0;
             } else if (format_arg == "classic64") {
@@ -68,11 +64,14 @@ void File::New(const v8::FunctionCallbackInfo<v8::Value>& args) {
             } else if (format_arg == "netcdf4classic") {
                 format = NC_NETCDF4 | NC_CLASSIC_MODEL;
             } else {
-                isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "Unknown file format", v8::NewStringType::kNormal).ToLocalChecked()));
+                isolate->ThrowException(v8::Exception::TypeError(
+                    v8::String::NewFromUtf8(isolate, "Unknown file format", v8::NewStringType::kNormal)
+                        .ToLocalChecked()));
                 return;
             }
         }
-        int retval;
+        
+        int retval = NC_NOERR;
         if (mode_arg == "r") {
             retval = nc_open(filename.c_str(), NC_NOWRITE, &id);
         } else if (mode_arg == "w") {
@@ -82,16 +81,20 @@ void File::New(const v8::FunctionCallbackInfo<v8::Value>& args) {
         } else if (mode_arg == "c!") {
             retval = nc_create(filename.c_str(), format | NC_CLOBBER, &id);
         } else {
-            isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "Unknown file mode", v8::NewStringType::kNormal).ToLocalChecked()));
+            isolate->ThrowException(v8::Exception::TypeError(
+                v8::String::NewFromUtf8(isolate, "Unknown file mode", v8::NewStringType::kNormal)
+                    .ToLocalChecked()));
             return;
         }
         if (retval != NC_NOERR) {
             throw_netcdf_error(isolate, retval);
             return;
         }
-        File* obj = new File(id);
+        auto* obj = new File(id);
         obj->Wrap(args.This());
-        args.This()->Set(isolate->GetCurrentContext(), v8::String::NewFromUtf8(isolate, "root", v8::NewStringType::kNormal).ToLocalChecked(), (new Group(id))->handle());
+        args.This()->Set(isolate->GetCurrentContext(), 
+            v8::String::NewFromUtf8(isolate, "root", v8::NewStringType::kNormal).ToLocalChecked(), 
+            (new Group(id))->handle());
         args.GetReturnValue().Set(args.This());
     } else {
         const int argc = 1;

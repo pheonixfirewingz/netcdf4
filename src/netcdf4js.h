@@ -4,38 +4,40 @@
 #include <netcdf.h>
 #include <node.h>
 #include <string>
+#include <string_view>
+#include <unordered_map>
 
 namespace netcdf4js {
 
-inline void throw_netcdf_error(v8::Isolate* isolate, int retval) {
-    isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, nc_strerror(retval), v8::NewStringType::kNormal).ToLocalChecked()));
+inline void throw_netcdf_error(v8::Isolate* isolate, int retval) noexcept(false) {
+    isolate->ThrowException(v8::Exception::TypeError(
+        v8::String::NewFromUtf8(isolate, nc_strerror(retval), v8::NewStringType::kNormal)
+            .ToLocalChecked()));
 }
 
-inline int get_type(const std::string& type_str) {
-    if (type_str == "byte") {
-        return NC_BYTE;
-    } else if (type_str == "char") {
-        return NC_CHAR;
-    } else if (type_str == "short") {
-        return NC_SHORT;
-    } else if (type_str == "int") {
-        return NC_INT;
-    } else if (type_str == "float") {
-        return NC_FLOAT;
-    } else if (type_str == "double") {
-        return NC_DOUBLE;
-    } else if (type_str == "ubyte") {
-        return NC_UBYTE;
-    } else if (type_str == "ushort") {
-        return NC_USHORT;
-    } else if (type_str == "uint") {
-        return NC_UINT;
-    } else if (type_str == "string") {
-        return NC_STRING;
-    } else {
-        return NC2_ERR;
+[[nodiscard]] constexpr int get_type(std::string_view type_str) noexcept {
+    // Using compile-time mapping with C++20 features
+    constexpr std::pair<std::string_view, int> type_map[] = {
+        {"byte", NC_BYTE},
+        {"char", NC_CHAR},
+        {"short", NC_SHORT},
+        {"int", NC_INT},
+        {"float", NC_FLOAT},
+        {"double", NC_DOUBLE},
+        {"ubyte", NC_UBYTE},
+        {"ushort", NC_USHORT},
+        {"uint", NC_UINT},
+        {"string", NC_STRING}
+    };
+    
+    for (const auto& [key, value] : type_map) {
+        if (type_str == key) {
+            return value;
+        }
     }
+    return NC_NAT;  // Use NC_NAT instead of NC2_ERR for invalid type
 }
+
 }  // namespace netcdf4js
 
 #endif

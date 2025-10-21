@@ -1,181 +1,328 @@
-# netcdf4-js
+# netcdf4
 
-![Build status](https://github.com/parro-it/netcdf4/workflows/Node.js%20CI/badge.svg?branch=master)
-[![NPM Version](https://img.shields.io/npm/v/netcdf4.svg)](https://npmjs.org/package/netcdf4)
+A Node.js native addon for reading and writing NetCDF4 files, providing a comprehensive interface to the NetCDF-4 C library.
 
-NodeJS addon for reading and writing the files in the
-[Network Common Data Form (NetCDF)](https://www.unidata.ucar.edu/software/netcdf/)
-version <= 4,
-built upon the C-library for netcdf.
+## Overview
+
+This package provides Node.js bindings to the NetCDF-4 library, allowing you to read and write NetCDF4 files directly from JavaScript. NetCDF (Network Common Data Form) is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data.
+
+### Features
+
+- Read and write NetCDF4 files
+- Full support for groups, variables, dimensions, and attributes
+- Support for all NetCDF4 data types
+- Chunk mode and compression options
+- Fill values and endianness control
+- Strided slice operations for efficient data access
+- Cross-platform support (Windows, Linux, macOS)
+
+## Requirements
+
+- Node.js >= 22.0.0
+- C++ compiler with C++20 support
+- CMake (for building dependencies)
 
 ## Installation
-
-`netcdf4-js` requires `nodejs` >= 18.0.0
-
-Install using `npm`:
 
 ```bash
 npm install netcdf4
 ```
 
-### Prerequisites
+The installation process will:
+1. Set up vcpkg package manager
+2. Verify build dependencies
+3. Build the native addon using node-gyp
+4. Copy required shared libraries
 
-The package now automatically manages NetCDF dependencies using vcpkg. During installation:
+### Platform-Specific Notes
 
-1. vcpkg will be automatically downloaded and bootstrapped
-2. NetCDF and its dependencies (HDF5, zlib, curl, etc.) will be installed via vcpkg
-3. The native module will be compiled with these dependencies
+**Windows:**
+- Requires Visual Studio 2022 (v143 toolset)
+- Build uses vcpkg to manage NetCDF and HDF5 dependencies
 
-**You need to have the following build tools installed:**
+**Linux:**
+- Requires gcc with C++20 support
+- Dependencies are statically linked via vcpkg
 
-#### Windows
-* Visual Studio 2019 or later (with C++ development tools)
-* Or Visual Studio Build Tools 2019 or later
-* Git (for vcpkg)
-
-#### Linux
-* GCC/G++ or Clang
-* CMake >= 3.10
-* Git (for vcpkg)
-* Build essentials: `sudo apt-get install build-essential cmake git`
-
-#### macOS
-* Xcode Command Line Tools: `xcode-select --install`
-* Git (for vcpkg)
-
-### Manual Installation (Alternative)
-
-If you prefer to manage NetCDF dependencies yourself:
-
-1. Install NetCDF4 using your system package manager:
-   * **Linux**: `sudo apt-get install libnetcdf-dev`
-   * **macOS**: `brew install netcdf`
-   * **Windows**: Download from [NetCDF website](https://www.unidata.ucar.edu/downloads/netcdf/index.jsp)
-
-2. Skip the automated vcpkg setup by setting an environment variable:
-   ```bash
-   SKIP_VCPKG_SETUP=1 npm install netcdf4
-   ```
+**macOS:**
+- Requires Xcode command line tools
+- Minimum deployment target: macOS 10.15
 
 ## Usage
 
-Open files with
+### Opening a NetCDF File
+
 ```javascript
-var netcdf4 = require("netcdf4");
+const netcdf4 = require('netcdf4');
 
-var file = new netcdf4.File("test/testrh.nc", "r");
+// Open an existing file for reading
+const file = new netcdf4.File('path/to/file.nc', 'r');
+
+// Create a new file
+const newFile = new netcdf4.File('path/to/new-file.nc', 'w', 'netcdf4');
+
+// Available modes:
+// 'r'  - read-only
+// 'w'  - write (create new file)
+// 'c'  - create (fail if exists)
+// 'a'  - append (read/write existing file)
+
+// Available formats:
+// 'netcdf4' - NetCDF-4 format
+// 'classic'  - NetCDF classic format
+// '64bit'    - 64-bit offset format
 ```
-File modes are `"r"` for "reading", `"w"` for "writing", `"c"` for
-"creation", and `"c!"` for "overwriting".
 
-Then you can read variables using `read` or `readSlice`. The following example reads values at positions 5 to 15:
+### Working with Groups
+
 ```javascript
-console.log(file.root.variables['var1'].readSlice(5, 10));
+// Access the root group
+const root = file.root;
+
+// Get group properties
+console.log(root.name);      // Group name
+console.log(root.fullname);  // Full path
+console.log(root.id);        // NetCDF ID
+
+// Create a subgroup
+const dataGroup = root.addSubgroup('data');
+
+// Access subgroups
+const subgroups = root.subgroups;
+console.log(subgroups);  // Object with subgroup names as keys
 ```
 
-### Classes
+### Working with Dimensions
 
-Properties marked *(r/w)* can be read and will be written to the file
-when set.
+```javascript
+// Add dimensions
+const timeDim = root.addDimension('time', 0);     // Unlimited dimension
+const latDim = root.addDimension('lat', 180);     // Fixed dimension
+const lonDim = root.addDimension('lon', 360);
 
-#### File
+// Access dimension properties
+console.log(timeDim.name);    // 'time'
+console.log(timeDim.length);  // Current length
+console.log(timeDim.id);      // NetCDF ID
+
+// Get all dimensions
+const dimensions = root.dimensions;
+const unlimitedDims = root.unlimited;  // Array of unlimited dimensions
+```
+
+### Working with Variables
+
+```javascript
+// Create a variable
+const tempVar = root.addVariable('temperature', 'float', ['time', 'lat', 'lon']);
+
+// Supported data types:
+// 'byte', 'char', 'short', 'int', 'float', 'double',
+// 'ubyte', 'ushort', 'uint', 'int64', 'uint64'
+
+// Write data
+tempVar.write([1.5, 2.3, 3.7, ...]);
+
+// Write a slice
+tempVar.writeSlice([0, 0, 0], [1, 180, 360], data);
+
+// Write with stride
+tempVar.writeStridedSlice([0, 0, 0], [1, 1, 1], [10, 180, 360], data);
+
+// Read data
+const data = tempVar.read();
+
+// Read a slice
+const slice = tempVar.readSlice([0, 0, 0], [1, 180, 360]);
+
+// Read with stride
+const stridedData = tempVar.readStridedSlice([0, 0, 0], [2, 2, 2], [10, 180, 360]);
+
+// Variable properties
+console.log(tempVar.name);        // Variable name
+console.log(tempVar.type);        // Data type
+console.log(tempVar.dimensions);  // Array of dimension names
+console.log(tempVar.id);          // NetCDF ID
+```
+
+### Variable Settings
+
+```javascript
+// Set endianness
+tempVar.endianness = 'little';  // or 'big', 'native'
+
+// Set checksum mode
+tempVar.checksummode = 'fletcher32';  // or 'none'
+
+// Set chunking
+tempVar.chunkmode = 'chunked';  // or 'contiguous'
+tempVar.chunksizes = [1, 180, 360];
+
+// Set fill mode and value
+tempVar.fillmode = true;
+tempVar.fillvalue = -999.9;
+
+// Set compression
+tempVar.compression_shuffle = true;
+tempVar.compression_deflate = true;
+tempVar.compression_level = 6;  // 0-9
+```
+
+### Working with Attributes
+
+```javascript
+// Add attributes to variables
+tempVar.addAttribute('units', 'Kelvin');
+tempVar.addAttribute('long_name', 'Air Temperature');
+tempVar.addAttribute('valid_range', [200.0, 350.0]);
+
+// Add global attributes (to groups)
+root.addAttribute('title', 'Climate Data');
+root.addAttribute('institution', 'Research Center');
+root.addAttribute('created', new Date().toISOString());
+
+// Read attributes
+const attrs = tempVar.attributes;
+console.log(attrs.units.value);  // 'Kelvin'
+
+// Modify attribute value
+attrs.units.value = 'Celsius';
+
+// Delete an attribute
+attrs.units.delete();
+```
+
+### Closing Files
+
+```javascript
+// Sync changes to disk
+file.sync();
+
+// Close the file
+file.close();
+```
+
+## API Reference
+
+### File
+
+- `new File(path, mode, format)` - Open or create a NetCDF file
+- `file.root` - Access the root group
+- `file.close()` - Close the file
+- `file.sync()` - Sync changes to disk
+
+### Group
 
 Properties:
-* `root` : Main `Group`-object in file
+- `group.id` - NetCDF group ID
+- `group.name` - Group name
+- `group.fullname` - Full path of the group
+- `group.dimensions` - Object containing dimensions
+- `group.unlimited` - Array of unlimited dimensions
+- `group.variables` - Object containing variables
+- `group.attributes` - Object containing attributes
+- `group.subgroups` - Object containing subgroups
 
 Methods:
-* `close()` : Close file
-* `sync()` : Sync (or "flush") file to disk
-
-#### Group
-
-Properties:
-* `id` : ID used by C-library
-* `name` : Name
-* `fullname` : Full name (path in file)
-* `variables` : Associative array of variables in group
-* `dimensions` : Associative array of dimensions in group
-* `unlimited` : Associative array of unlimited Dimensions in group
-* `attribute` : Associative array of attributes of group
-* `subgroups` : Associative array of subgroups of group
-
-Methods:
-* `addVariable(name, type, dimensions)` : Add a new variable in
-  group. `type` is one of `"byte", "char", "short", "int", "ubyte", "ushort",
-  "uint", "float", "double"`. `dimensions` is an array of ids of dimensions
-  for the new variable. Returns new variable.
-* `addDimension(name, length)` : Add new dimension of length `length`
-  (can be `"unlimited"` for unlimited dimension). Returns new dimension.
-* `addSubgroup(name)` : Add subgroup. Returns new subgroup.
-* `addAttribute(name, type, value)` : Add and set new attribute. Returns new attribute.
+- `group.addDimension(name, length)` - Add a dimension
+- `group.addVariable(name, type, dimensions)` - Add a variable
+- `group.addAttribute(name, value)` - Add an attribute
+- `group.addSubgroup(name)` - Add a subgroup
 
 ### Dimension
 
 Properties:
-* `id` : ID used by C-library
-* `name` : Name (r/w)
-* `length` : Length or currently used length for unlimited dimensions
-
-### Attribute
-
-Properties:
-* `id` : ID used by C-library
-* `name` : Name (r/w)
-* `value` : Value (r/w)
-
-Methods:
-* `delete()` : Delete attribute
+- `dimension.id` - NetCDF dimension ID
+- `dimension.name` - Dimension name
+- `dimension.length` - Current length of the dimension
 
 ### Variable
 
 Properties:
-* `id` : ID used by C-library
-* `name` : Name (r/w)
-* `type` : Type of variable
-* `attributes` : Associative array of attributes
-* `dimensions` : Array of dimensions used by variable
-* `endianness` : Endianness: `"little"`, `"big"`, or `"native"` (r/w)
-* `checksummode` : Checksum mode: `"none"`, or `"fletcher32"` (r/w)
-* `chunkmode` : Chunk mode: `"contiguous"`, or `"chunked"` (r/w)
-* `chunksizes` : Array of chunk sizes (one size per dimension) (r/w)
-* `fillmode` : Boolean switch for fill mode (r/w)
-* `fillvalue` : Fill value (r/w)
-* `compressionshuffle` : Boolean switch for shuffle (r/w)
-* `compressiondeflate` : Boolean switch for compression (r/w)
-* `compressionlevel` : Compression level (1-9) (r/w)
+- `variable.id` - NetCDF variable ID
+- `variable.name` - Variable name
+- `variable.type` - Data type
+- `variable.dimensions` - Array of dimension names
+- `variable.attributes` - Object containing attributes
+- `variable.endianness` - Byte order ('little', 'big', 'native')
+- `variable.checksummode` - Checksum mode ('none', 'fletcher32')
+- `variable.chunkmode` - Chunking mode ('contiguous', 'chunked')
+- `variable.chunksizes` - Array of chunk sizes
+- `variable.fillmode` - Whether fill values are enabled
+- `variable.fillvalue` - Fill value
+- `variable.compression_shuffle` - Shuffle filter enabled
+- `variable.compression_deflate` - Deflate compression enabled
+- `variable.compression_level` - Compression level (0-9)
 
 Methods:
-* `read(pos....)` : Reads and returns a single value at positions
-  given as for `write`.
-* `readSlice(pos, size....)` : Reads and returns an array of values (cf.
-  ["Specify a Hyperslab"](https://www.unidata.ucar.edu/software/netcdf/docs/programming_notes.html#specify_hyperslab))
-  at positions and sizes given for each dimension, `readSlice(pos1,
-  size1, pos2, size2, ...)` e.g. `readSlice(2, 3, 4, 2)` gives an
-  array of the values at position 2 for 3 steps along the first
-  dimension and position 4 for 2 steps along the second one.
-* `readStridedSlice(pos, size, stride....)` : Similar to `readSlice()`, but it
-  adds a *stride* (interval between indices) parameter to each dimension. If stride is 4,
-  the function will take 1 value, discard 3, take 1 again, etc.
-  So for instance `readStridedSlice(2, 3, 2, 4, 2, 1)` gives an
-  array of the values at position 2 for 3 steps with stride 2 (i.e.
-  every other value) along the first dimension and position 4 for 2 steps
-  with stride 1 (i.e. with no dropping) along the second dimension.
-* `write(pos..., value)` : Write `value` at positions given,
-  e.g. `write(2, 3, "a")` writes `"a"` at position 2 along the first
-  dimension and position 3 along the second one.
-* `writeSlice(pos, size..., valuearray)` : Write values in `valuearray`
-  (must be a typed array) at positions and sizes given for each
-  dimension, e.g. `writeSlice(2, 3, 4, 2, new
-  Int32Array([0, 1, 2, 3, 4, 5]))` writes the array at position 2 for
-  3 steps along the first dimension and position 4 for 2 step along
-  the second one (cf.
-  ["Specify a Hyperslab"](https://www.unidata.ucar.edu/software/netcdf/docs/programming_notes.html#specify_hyperslab)).
-* `writeStridedSlice(pos, size, stride..., valuearray)` : Similar to
-  `writeSlice()`, but it adds a *stride* parameter to each dimension.
-  So for instance `writeStridedSlice(2, 3, 2, 4, 2, 1), new
-  Int32Array([0, 1, 2, 3, 4, 5])` writes the array
-  at position 2 for 3 steps with stride 2 (i.e.
-  every other value) along the first dimension and position 4 for 2 steps
-  with stride 1 (i.e. with no dropping) along the second dimension.
-* `addAttribute(name, type, value)` : Adds and sets new attribute. Returns
-  new attribute.
+- `variable.read()` - Read all data
+- `variable.readSlice(start, count)` - Read a slice
+- `variable.readStridedSlice(start, stride, count)` - Read with stride
+- `variable.write(data)` - Write data
+- `variable.writeSlice(start, count, data)` - Write a slice
+- `variable.writeStridedSlice(start, stride, count, data)` - Write with stride
+- `variable.addAttribute(name, value)` - Add an attribute
+
+### Attribute
+
+Properties:
+- `attribute.name` - Attribute name
+- `attribute.value` - Attribute value
+
+Methods:
+- `attribute.delete()` - Delete the attribute
+
+## Development
+
+### Running Tests
+
+```bash
+npm test
+```
+
+### Building from Source
+
+```bash
+npm install
+```
+
+The build process uses:
+- `node-gyp` for compiling the native addon
+- `vcpkg` for managing C++ dependencies (NetCDF, HDF5, zlib, curl)
+
+## Original Project and License
+
+This is a fork and modernization of the original [netcdf4](https://github.com/parro-it/netcdf4) project.
+
+### Original Contributors
+
+- Andrea Parodi <andrea@parro.it> (http://www.parro.it/)
+- Sven Willner <sven.willner@gmail.com> (http://svenwillner.net)
+
+### Current Maintainer
+
+- Luke Shore <luke.a.shore@oliva.energy> (https://oliva.energy)
+
+### License
+
+ISC License
+
+Copyright (c) 2015, Sven Willner <sven.willner@gmail.com>
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+## Links
+
+- [Original Project](https://github.com/parro-it/netcdf4)
+- [NetCDF Documentation](https://www.unidata.ucar.edu/software/netcdf/docs/)
+- [GitHub Repository](https://github.com/pheonixfirewingz/netcdf4)

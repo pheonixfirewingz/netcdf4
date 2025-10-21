@@ -5,39 +5,18 @@
 
 namespace netcdf4js {
 
-const unsigned char Variable::type_sizes[] = {
-    0,  // NC_NAT // unknown type
-    1,  // NC_BYTE
-    1,  // NC_CHAR
-    2,  // NC_SHORT
-    4,  // NC_INT / NC_LONG
-    4,  // NC_FLOAT
-    8,  // NC_DOUBLE
-    1,  // NC_UBYTE
-    2,  // NC_USHORT
-    4   // NC_UINT
-};
-
-const char* Variable::type_names[] = {
-    "unknown",  // NC_NAT // unknown type
-    "byte",     // NC_BYTE
-    "char",     // NC_CHAR
-    "short",    // NC_SHORT
-    "int",      // NC_INT / NC_LONG
-    "float",    // NC_FLOAT
-    "double",   // NC_DOUBLE
-    "ubyte",    // NC_UBYTE
-    "ushort",   // NC_USHORT
-    "uint"      // NC_UINT
-};
+// Static constexpr arrays are defined in the header file
+constexpr std::array<unsigned char, 11> Variable::type_sizes;
+constexpr std::array<const char*, 11> Variable::type_names;
 
 v8::Persistent<v8::Function> Variable::constructor;
 
-Variable::Variable(const int& id_, const int& parent_id_) : id(id_), parent_id(parent_id_) {
+Variable::Variable(int id_, int parent_id_) noexcept : id(id_), parent_id(parent_id_) {
     v8::Isolate* isolate = v8::Isolate::GetCurrent();
-    v8::Local<v8::Object> obj = v8::Local<v8::Function>::New(isolate, constructor)->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
+    v8::Local<v8::Object> obj = v8::Local<v8::Function>::New(isolate, constructor)
+        ->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
     Wrap(obj);
-    int retval = nc_inq_var(parent_id, id, NULL, &type, &ndims, NULL, NULL);
+    const int retval = nc_inq_var(parent_id, id, nullptr, &type, &ndims, nullptr, nullptr);
     if (retval != NC_NOERR) {
         throw_netcdf_error(isolate, retval);
     }
@@ -76,8 +55,8 @@ void Variable::Init(v8::Local<v8::Object> exports) {
     constructor.Reset(isolate, tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
 }
 
-bool Variable::get_name(char* name) const {
-    int retval = nc_inq_varname(parent_id, id, name);
+bool Variable::get_name(char* name) const noexcept {
+    const int retval = nc_inq_varname(parent_id, id, name);
     if (retval != NC_NOERR) {
         throw_netcdf_error(v8::Isolate::GetCurrent(), retval);
         return false;
@@ -87,63 +66,66 @@ bool Variable::get_name(char* name) const {
 
 void Variable::Write(const v8::FunctionCallbackInfo<v8::Value>& args) {
     v8::Isolate* isolate = args.GetIsolate();
-    Variable* obj = node::ObjectWrap::Unwrap<Variable>(args.Holder());
+    auto* obj = node::ObjectWrap::Unwrap<Variable>(args.Holder());
+    
     if (args.Length() != obj->ndims + 1) {
-        isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "Wrong number of arguments", v8::NewStringType::kNormal).ToLocalChecked()));
+        isolate->ThrowException(v8::Exception::TypeError(
+            v8::String::NewFromUtf8(isolate, "Wrong number of arguments", v8::NewStringType::kNormal)
+                .ToLocalChecked()));
         return;
     }
-    size_t* pos = new size_t[obj->ndims];
-    size_t* size = new size_t[obj->ndims];
+    
+    std::vector<size_t> pos(obj->ndims);
+    std::vector<size_t> size(obj->ndims, 1);
+    
     for (int i = 0; i < obj->ndims; i++) {
         pos[i] = static_cast<size_t>(args[i]->IntegerValue(isolate->GetCurrentContext()).ToChecked());
-        size[i] = 1;
     }
-    int retval;
+    int retval = NC_NOERR;
     switch (obj->type) {
         case NC_BYTE:
         case NC_CHAR: {
-            int8_t v = args[obj->ndims]->Int32Value(isolate->GetCurrentContext()).ToChecked();
-            retval = nc_put_vara(obj->parent_id, obj->id, pos, size, &v);
+            const int8_t v = args[obj->ndims]->Int32Value(isolate->GetCurrentContext()).ToChecked();
+            retval = nc_put_vara(obj->parent_id, obj->id, pos.data(), size.data(), &v);
         } break;
         case NC_SHORT: {
-            int16_t v = args[obj->ndims]->Int32Value(isolate->GetCurrentContext()).ToChecked();
-            retval = nc_put_vara(obj->parent_id, obj->id, pos, size, &v);
+            const int16_t v = args[obj->ndims]->Int32Value(isolate->GetCurrentContext()).ToChecked();
+            retval = nc_put_vara(obj->parent_id, obj->id, pos.data(), size.data(), &v);
         } break;
         case NC_INT: {
-            int32_t v = args[obj->ndims]->Int32Value(isolate->GetCurrentContext()).ToChecked();
-            retval = nc_put_vara(obj->parent_id, obj->id, pos, size, &v);
+            const int32_t v = args[obj->ndims]->Int32Value(isolate->GetCurrentContext()).ToChecked();
+            retval = nc_put_vara(obj->parent_id, obj->id, pos.data(), size.data(), &v);
         } break;
         case NC_FLOAT: {
-            float v = static_cast<float>(args[obj->ndims]->NumberValue(isolate->GetCurrentContext()).ToChecked());
-            retval = nc_put_vara(obj->parent_id, obj->id, pos, size, &v);
+            const float v = static_cast<float>(args[obj->ndims]->NumberValue(isolate->GetCurrentContext()).ToChecked());
+            retval = nc_put_vara(obj->parent_id, obj->id, pos.data(), size.data(), &v);
         } break;
         case NC_DOUBLE: {
-            double v = args[obj->ndims]->NumberValue(isolate->GetCurrentContext()).ToChecked();
-            retval = nc_put_vara(obj->parent_id, obj->id, pos, size, &v);
+            const double v = args[obj->ndims]->NumberValue(isolate->GetCurrentContext()).ToChecked();
+            retval = nc_put_vara(obj->parent_id, obj->id, pos.data(), size.data(), &v);
         } break;
         case NC_UBYTE: {
-            uint8_t v = args[obj->ndims]->Uint32Value(isolate->GetCurrentContext()).ToChecked();
-            retval = nc_put_vara(obj->parent_id, obj->id, pos, size, &v);
+            const uint8_t v = args[obj->ndims]->Uint32Value(isolate->GetCurrentContext()).ToChecked();
+            retval = nc_put_vara(obj->parent_id, obj->id, pos.data(), size.data(), &v);
         } break;
         case NC_USHORT: {
-            uint16_t v = args[obj->ndims]->Uint32Value(isolate->GetCurrentContext()).ToChecked();
-            retval = nc_put_vara(obj->parent_id, obj->id, pos, size, &v);
+            const uint16_t v = args[obj->ndims]->Uint32Value(isolate->GetCurrentContext()).ToChecked();
+            retval = nc_put_vara(obj->parent_id, obj->id, pos.data(), size.data(), &v);
         } break;
         case NC_UINT: {
-            uint32_t v = args[obj->ndims]->Uint32Value(isolate->GetCurrentContext()).ToChecked();
-            retval = nc_put_vara(obj->parent_id, obj->id, pos, size, &v);
+            const uint32_t v = args[obj->ndims]->Uint32Value(isolate->GetCurrentContext()).ToChecked();
+            retval = nc_put_vara(obj->parent_id, obj->id, pos.data(), size.data(), &v);
         } break;
         default:
-            isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "Variable type not supported yet", v8::NewStringType::kNormal).ToLocalChecked()));
-            delete[] pos;
-            delete[] size;
+            isolate->ThrowException(v8::Exception::TypeError(
+                v8::String::NewFromUtf8(isolate, "Variable type not supported yet", v8::NewStringType::kNormal)
+                    .ToLocalChecked()));
             return;
     }
+    
     if (retval != NC_NOERR) {
         throw_netcdf_error(isolate, retval);
     }
-    delete[] pos;
-    delete[] size;
 }
 
 void Variable::WriteSlice(const v8::FunctionCallbackInfo<v8::Value>& args) {

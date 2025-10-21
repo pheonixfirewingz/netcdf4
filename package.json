@@ -11,24 +11,25 @@
     "verify-deps": "node scripts/verify-build-deps.js"
   },
   "author": {
-    "name": "Sven Willner",
-    "email": "sven.willner@gmail.com",
-    "url": "http://svenwillner.net"
+    "name": "Luke Shore",
+    "email": "luke.a.shore@oliva.energy",
+    "url": "https://oliva.energy"
   },
   "contributors": [
-    "Andrea Parodi <andrea@parro.it> (http://www.parro.it/)"
+    "Andrea Parodi <andrea@parro.it> (http://www.parro.it/)",
+    "Sven Willner <sven.willner@gmail.com> (http://svenwillner.net)"
   ],
   "repository": "parro-it/netcdf4",
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.0.0"
   },
   "license": "ISC",
   "gypfile": true,
   "dependencies": {
-    "node-gyp": "^10.0.0"
+    "node-gyp": "^11.5.0"
   },
   "devDependencies": {
-    "chai": "^4.3.10",
-    "mocha": "^10.2.0"
+    "chai": "^6.2.0",
+    "mocha": "^11.7.4"
   }
 }
