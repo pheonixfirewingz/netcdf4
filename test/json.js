@@ -63,6 +63,40 @@ describe('JSON Serialization', function() {
                 }
             }
         });
+        
+        it('should not serialize attribute values as null', function() {
+            // Check all attributes in file don't have null values when serialized
+            var jsonStr = JSON.stringify(file);
+            var nullMatches = jsonStr.match(/"value":\s*null/g);
+            var nullCount = nullMatches ? nullMatches.length : 0;
+            
+            expect(nullCount).to.equal(0, 'Found ' + nullCount + ' null attribute values in JSON');
+        });
+        
+        it('should convert TypedArray values to regular arrays in JSON', function() {
+            // Find an attribute with a TypedArray value
+            var variables = file.root.variables;
+            for (var varName in variables) {
+                var variable = variables[varName];
+                var varAttrs = variable.attributes;
+                for (var attrName in varAttrs) {
+                    var attr = varAttrs[attrName];
+                    
+                    // Check if value is a TypedArray
+                    if (attr.value && typeof attr.value === 'object' && 
+                        attr.value.constructor && attr.value.constructor.name.includes('Array') &&
+                        !Array.isArray(attr.value)) {
+                        
+                        // It's a TypedArray, test it converts to regular array
+                        var json = JSON.parse(JSON.stringify(attr));
+                        
+                        // In JSON, it should be a regular array
+                        expect(Array.isArray(json.value)).to.be.true;
+                        return;
+                    }
+                }
+            }
+        });
     });
     
     describe('Variable', function() {
@@ -130,11 +164,15 @@ describe('JSON Serialization', function() {
         it('should recursively serialize entire file structure', function() {
             var json = JSON.parse(JSON.stringify(file));
             
-            // File should serialize as root group with all children
+            // File should serialize as root group with all children as arrays
             expect(json).to.have.property('dimensions');
             expect(json).to.have.property('variables');
-            expect(json.variables).to.be.an('object');
-            expect(json.dimensions).to.be.an('object');
+            expect(json).to.have.property('attributes');
+            expect(json).to.have.property('subgroups');
+            expect(json.variables).to.be.an('array');
+            expect(json.dimensions).to.be.an('array');
+            expect(json.attributes).to.be.an('array');
+            expect(json.subgroups).to.be.an('array');
         });
     });
 });

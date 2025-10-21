@@ -174,11 +174,27 @@ void File::ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
     v8::Isolate *isolate = args.GetIsolate();
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
     
-    // Get the root group and serialize it
+    // Get the root group
     v8::Local<v8::String> rootProp = v8::String::NewFromUtf8(isolate, "root", v8::NewStringType::kNormal).ToLocalChecked();
     v8::Local<v8::Value> root = args.Holder()->Get(context, rootProp).ToLocalChecked();
     
-    // The root group's toJSON will automatically serialize all children recursively
+    // Call toJSON on the root group to get proper array conversion
+    if (root->IsObject())
+    {
+        v8::Local<v8::Object> rootObj = root->ToObject(context).ToLocalChecked();
+        v8::Local<v8::String> toJSONProp = v8::String::NewFromUtf8(isolate, "toJSON", v8::NewStringType::kNormal).ToLocalChecked();
+        v8::Local<v8::Value> toJSONMethod = rootObj->Get(context, toJSONProp).ToLocalChecked();
+        
+        if (toJSONMethod->IsFunction())
+        {
+            v8::Local<v8::Function> toJSONFunc = v8::Local<v8::Function>::Cast(toJSONMethod);
+            v8::Local<v8::Value> result = toJSONFunc->Call(context, rootObj, 0, nullptr).ToLocalChecked();
+            args.GetReturnValue().Set(result);
+            return;
+        }
+    }
+    
+    // Fallback: return root as-is
     args.GetReturnValue().Set(root);
 }
 } // namespace nodenetcdfjs

@@ -365,6 +365,21 @@ void Attribute::ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
         }
         value = v8::Null(isolate);
     }
+    else if (value->IsTypedArray())
+    {
+        // Convert TypedArray to regular array for JSON serialization
+        v8::Local<v8::TypedArray> typedArray = v8::Local<v8::TypedArray>::Cast(value);
+        uint32_t length = typedArray->Length();
+        v8::Local<v8::Array> array = v8::Array::New(isolate, length);
+        
+        for (uint32_t i = 0; i < length; i++)
+        {
+            v8::Local<v8::Value> element = typedArray->Get(context, i).ToLocalChecked();
+            (void)array->Set(context, i, element);
+        }
+        value = array;
+    }
+    // Don't wrap primitives - only convert TypedArrays to arrays
     
     (void)json->CreateDataProperty(context, value_str, value);
     

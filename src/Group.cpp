@@ -525,30 +525,124 @@ void Group::ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
         }
     }
     
-    // Add dimensions, variables, attributes, subgroups
-    // These will be accessed through property getters which trigger the respective Get* methods
+    // Convert dimensions object to array, calling toJSON on each item
     v8::Local<v8::Value> dimensions = args.Holder()->Get(context, dimensions_str).ToLocalChecked();
-    if (dimensions->IsObject())
+    if (dimensions->IsObject() && !dimensions->IsNull())
     {
-        (void)json->CreateDataProperty(context, dimensions_str, dimensions);
+        v8::Local<v8::Object> dimsObj = dimensions->ToObject(context).ToLocalChecked();
+        v8::Local<v8::Array> propNames = dimsObj->GetOwnPropertyNames(context).ToLocalChecked();
+        v8::Local<v8::Array> dimsArray = v8::Array::New(isolate, propNames->Length());
+        v8::Local<v8::String> toJSONStr = v8::String::NewFromUtf8Literal(isolate, "toJSON");
+        
+        for (uint32_t i = 0; i < propNames->Length(); i++)
+        {
+            v8::Local<v8::Value> key = propNames->Get(context, i).ToLocalChecked();
+            v8::Local<v8::Value> value = dimsObj->Get(context, key).ToLocalChecked();
+            
+            // Call toJSON if available to ensure proper serialization
+            if (value->IsObject())
+            {
+                v8::Local<v8::Object> valueObj = value->ToObject(context).ToLocalChecked();
+                v8::Local<v8::Value> toJSON = valueObj->Get(context, toJSONStr).ToLocalChecked();
+                if (toJSON->IsFunction())
+                {
+                    v8::Local<v8::Function> toJSONFunc = v8::Local<v8::Function>::Cast(toJSON);
+                    value = toJSONFunc->Call(context, valueObj, 0, nullptr).ToLocalChecked();
+                }
+            }
+            (void)dimsArray->Set(context, i, value);
+        }
+        (void)json->CreateDataProperty(context, dimensions_str, dimsArray);
     }
     
+    // Convert variables object to array, calling toJSON on each item
     v8::Local<v8::Value> variables = args.Holder()->Get(context, variables_str).ToLocalChecked();
-    if (variables->IsObject())
+    if (variables->IsObject() && !variables->IsNull())
     {
-        (void)json->CreateDataProperty(context, variables_str, variables);
+        v8::Local<v8::Object> varsObj = variables->ToObject(context).ToLocalChecked();
+        v8::Local<v8::Array> propNames = varsObj->GetOwnPropertyNames(context).ToLocalChecked();
+        v8::Local<v8::Array> varsArray = v8::Array::New(isolate, propNames->Length());
+        v8::Local<v8::String> toJSONStr = v8::String::NewFromUtf8Literal(isolate, "toJSON");
+        
+        for (uint32_t i = 0; i < propNames->Length(); i++)
+        {
+            v8::Local<v8::Value> key = propNames->Get(context, i).ToLocalChecked();
+            v8::Local<v8::Value> value = varsObj->Get(context, key).ToLocalChecked();
+            
+            // Call toJSON if available to ensure proper serialization
+            if (value->IsObject())
+            {
+                v8::Local<v8::Object> valueObj = value->ToObject(context).ToLocalChecked();
+                v8::Local<v8::Value> toJSON = valueObj->Get(context, toJSONStr).ToLocalChecked();
+                if (toJSON->IsFunction())
+                {
+                    v8::Local<v8::Function> toJSONFunc = v8::Local<v8::Function>::Cast(toJSON);
+                    value = toJSONFunc->Call(context, valueObj, 0, nullptr).ToLocalChecked();
+                }
+            }
+            (void)varsArray->Set(context, i, value);
+        }
+        (void)json->CreateDataProperty(context, variables_str, varsArray);
     }
     
+    // Convert attributes object to array, calling toJSON on each item
     v8::Local<v8::Value> attributes = args.Holder()->Get(context, attributes_str).ToLocalChecked();
-    if (attributes->IsObject())
+    if (attributes->IsObject() && !attributes->IsNull())
     {
-        (void)json->CreateDataProperty(context, attributes_str, attributes);
+        v8::Local<v8::Object> attrsObj = attributes->ToObject(context).ToLocalChecked();
+        v8::Local<v8::Array> propNames = attrsObj->GetOwnPropertyNames(context).ToLocalChecked();
+        v8::Local<v8::Array> attrsArray = v8::Array::New(isolate, propNames->Length());
+        v8::Local<v8::String> toJSONStr = v8::String::NewFromUtf8Literal(isolate, "toJSON");
+        
+        for (uint32_t i = 0; i < propNames->Length(); i++)
+        {
+            v8::Local<v8::Value> key = propNames->Get(context, i).ToLocalChecked();
+            v8::Local<v8::Value> value = attrsObj->Get(context, key).ToLocalChecked();
+            
+            // Call toJSON if available to ensure proper serialization
+            if (value->IsObject())
+            {
+                v8::Local<v8::Object> valueObj = value->ToObject(context).ToLocalChecked();
+                v8::Local<v8::Value> toJSON = valueObj->Get(context, toJSONStr).ToLocalChecked();
+                if (toJSON->IsFunction())
+                {
+                    v8::Local<v8::Function> toJSONFunc = v8::Local<v8::Function>::Cast(toJSON);
+                    value = toJSONFunc->Call(context, valueObj, 0, nullptr).ToLocalChecked();
+                }
+            }
+            (void)attrsArray->Set(context, i, value);
+        }
+        (void)json->CreateDataProperty(context, attributes_str, attrsArray);
     }
     
+    // Convert subgroups object to array, calling toJSON on each item
     v8::Local<v8::Value> subgroups = args.Holder()->Get(context, subgroups_str).ToLocalChecked();
-    if (subgroups->IsObject())
+    if (subgroups->IsObject() && !subgroups->IsNull())
     {
-        (void)json->CreateDataProperty(context, subgroups_str, subgroups);
+        v8::Local<v8::Object> subgrpsObj = subgroups->ToObject(context).ToLocalChecked();
+        v8::Local<v8::Array> propNames = subgrpsObj->GetOwnPropertyNames(context).ToLocalChecked();
+        v8::Local<v8::Array> subgrpsArray = v8::Array::New(isolate, propNames->Length());
+        v8::Local<v8::String> toJSONStr = v8::String::NewFromUtf8Literal(isolate, "toJSON");
+        
+        for (uint32_t i = 0; i < propNames->Length(); i++)
+        {
+            v8::Local<v8::Value> key = propNames->Get(context, i).ToLocalChecked();
+            v8::Local<v8::Value> value = subgrpsObj->Get(context, key).ToLocalChecked();
+            
+            // Call toJSON if available to ensure proper serialization
+            if (value->IsObject())
+            {
+                v8::Local<v8::Object> valueObj = value->ToObject(context).ToLocalChecked();
+                v8::Local<v8::Value> toJSON = valueObj->Get(context, toJSONStr).ToLocalChecked();
+                if (toJSON->IsFunction())
+                {
+                    v8::Local<v8::Function> toJSONFunc = v8::Local<v8::Function>::Cast(toJSON);
+                    value = toJSONFunc->Call(context, valueObj, 0, nullptr).ToLocalChecked();
+                }
+            }
+            (void)subgrpsArray->Set(context, i, value);
+        }
+        (void)json->CreateDataProperty(context, subgroups_str, subgrpsArray);
     }
     
     args.GetReturnValue().Set(json);
