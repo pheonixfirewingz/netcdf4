@@ -63,7 +63,7 @@ void File::New(const v8::FunctionCallbackInfo<v8::Value> &args)
         const std::string mode_arg =
             *v8::String::Utf8Value(isolate, args[1]->ToString(isolate->GetCurrentContext()).ToLocalChecked());
 
-        int format = NC_NODENETCDF;
+        int format = NC_NETCDF4;
         int id = -1;
 
         if (args.Length() > 2)
@@ -81,11 +81,11 @@ void File::New(const v8::FunctionCallbackInfo<v8::Value> &args)
             }
             else if (format_arg == "nodenetcdf")
             {
-                format = NC_NODENETCDF;
+                format = NC_NETCDF4;
             }
             else if (format_arg == "nodenetcdfclassic")
             {
-                format = NC_NODENETCDF | NC_CLASSIC_MODEL;
+                format = NC_NETCDF4 | NC_CLASSIC_MODEL;
             }
             else
             {

@@ -1,9 +1,5 @@
 # nodenetcdf
 
-[![Ubuntu Build](https://github.com/pheonixfirewingz/nodenetcdf/actions/workflows/nodejs.yml/badge.svg?event=push&os=ubuntu-latest)](https://github.com/pheonixfirewingz/nodenetcdf/actions/workflows/nodejs.yml)
-[![Windows Build](https://github.com/pheonixfirewingz/nodenetcdf/actions/workflows/nodejs.yml/badge.svg?event=push&os=windows-latest)](https://github.com/pheonixfirewingz/nodenetcdf/actions/workflows/nodejs.yml)
-[![macOS Build](https://github.com/pheonixfirewingz/nodenetcdf/actions/workflows/nodejs.yml/badge.svg?event=push&os=macos-latest)](https://github.com/pheonixfirewingz/nodenetcdf/actions/workflows/nodejs.yml)
-
 A Node.js native addon for reading and writing NodeNetCDF files, providing a comprehensive interface to the NetCDF-4 C library.
 
 ## Overview
