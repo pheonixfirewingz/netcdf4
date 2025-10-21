@@ -31,6 +31,7 @@ void Group::Init(v8::Local<v8::Object> exports)
     NODE_SET_PROTOTYPE_METHOD(tpl, "addSubgroup", Group::AddSubgroup);
     NODE_SET_PROTOTYPE_METHOD(tpl, "addAttribute", Group::AddAttribute);
     NODE_SET_PROTOTYPE_METHOD(tpl, "inspect", Group::Inspect);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "toJSON", Group::ToJSON);
     tpl->InstanceTemplate()->SetAccessor(
         v8::String::NewFromUtf8(isolate, "id", v8::NewStringType::kNormal).ToLocalChecked(), Group::GetId);
     tpl->InstanceTemplate()->SetAccessor(
@@ -479,5 +480,80 @@ void Group::Inspect(const v8::FunctionCallbackInfo<v8::Value> &args)
     v8::Isolate *isolate = args.GetIsolate();
     args.GetReturnValue().Set(
         v8::String::NewFromUtf8(isolate, "[object Group]", v8::NewStringType::kNormal).ToLocalChecked());
+}
+
+void Group::ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
+{
+    v8::Isolate *isolate = args.GetIsolate();
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    const auto *obj = node::ObjectWrap::Unwrap<Group>(args.Holder());
+    
+    v8::Local<v8::Object> json = v8::Object::New(isolate);
+    
+    // Add id
+    json->Set(context,
+              v8::String::NewFromUtf8(isolate, "id", v8::NewStringType::kNormal).ToLocalChecked(),
+              v8::Integer::New(isolate, obj->id))
+        .Check();
+    
+    // Add name
+    std::array<char, NC_MAX_NAME + 1> name{};
+    if (obj->get_name(name.data()))
+    {
+        json->Set(context,
+                  v8::String::NewFromUtf8(isolate, "name", v8::NewStringType::kNormal).ToLocalChecked(),
+                  v8::String::NewFromUtf8(isolate, name.data(), v8::NewStringType::kNormal).ToLocalChecked())
+            .Check();
+    }
+    
+    // Add fullname
+    size_t len = 0;
+    int retval = nc_inq_grpname_len(obj->id, &len);
+    if (retval == NC_NOERR)
+    {
+        std::vector<char> fullname(len + 1, '\0');
+        retval = nc_inq_grpname_full(obj->id, nullptr, fullname.data());
+        if (retval == NC_NOERR)
+        {
+            json->Set(context,
+                      v8::String::NewFromUtf8(isolate, "fullname", v8::NewStringType::kNormal).ToLocalChecked(),
+                      v8::String::NewFromUtf8(isolate, fullname.data(), v8::NewStringType::kNormal).ToLocalChecked())
+                .Check();
+        }
+    }
+    
+    // Add dimensions object with serialized dimension objects
+    v8::Local<v8::String> dimProp = v8::String::NewFromUtf8(isolate, "dimensions", v8::NewStringType::kNormal).ToLocalChecked();
+    v8::Local<v8::Value> dimensions = args.Holder()->Get(context, dimProp).ToLocalChecked();
+    if (dimensions->IsObject())
+    {
+        json->Set(context, dimProp, dimensions).Check();
+    }
+    
+    // Add variables object with serialized variable objects
+    v8::Local<v8::String> varProp = v8::String::NewFromUtf8(isolate, "variables", v8::NewStringType::kNormal).ToLocalChecked();
+    v8::Local<v8::Value> variables = args.Holder()->Get(context, varProp).ToLocalChecked();
+    if (variables->IsObject())
+    {
+        json->Set(context, varProp, variables).Check();
+    }
+    
+    // Add attributes object with serialized attribute objects
+    v8::Local<v8::String> attrProp = v8::String::NewFromUtf8(isolate, "attributes", v8::NewStringType::kNormal).ToLocalChecked();
+    v8::Local<v8::Value> attributes = args.Holder()->Get(context, attrProp).ToLocalChecked();
+    if (attributes->IsObject())
+    {
+        json->Set(context, attrProp, attributes).Check();
+    }
+    
+    // Add subgroups object with serialized subgroup objects
+    v8::Local<v8::String> subgroupsProp = v8::String::NewFromUtf8(isolate, "subgroups", v8::NewStringType::kNormal).ToLocalChecked();
+    v8::Local<v8::Value> subgroups = args.Holder()->Get(context, subgroupsProp).ToLocalChecked();
+    if (subgroups->IsObject())
+    {
+        json->Set(context, subgroupsProp, subgroups).Check();
+    }
+    
+    args.GetReturnValue().Set(json);
 }
 } // namespace nodenetcdfjs

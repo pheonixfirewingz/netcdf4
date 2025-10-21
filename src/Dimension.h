@@ -30,6 +30,7 @@ class Dimension : public node::ObjectWrap
     static void SetName(v8::Local<v8::String> property, v8::Local<v8::Value> val,
                         const v8::PropertyCallbackInfo<void> &info);
     static void Inspect(const v8::FunctionCallbackInfo<v8::Value> &args);
+    static void ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args);
 
     int id{-1};
     int parent_id{-1};

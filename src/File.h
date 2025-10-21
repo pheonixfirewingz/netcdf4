@@ -30,6 +30,7 @@ class File : public node::ObjectWrap
     static void Close(const v8::FunctionCallbackInfo<v8::Value> &args);
     static void Sync(const v8::FunctionCallbackInfo<v8::Value> &args);
     static void Inspect(const v8::FunctionCallbackInfo<v8::Value> &args);
+    static void ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args);
 
     static v8::Persistent<v8::Function> constructor;
 

@@ -34,6 +34,7 @@ class Attribute : public node::ObjectWrap
     static void SetValue(v8::Local<v8::String> property, v8::Local<v8::Value> val,
                          const v8::PropertyCallbackInfo<void> &info);
     static void Inspect(const v8::FunctionCallbackInfo<v8::Value> &args);
+    static void ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args);
 
     std::string name{};
     int var_id{-1};

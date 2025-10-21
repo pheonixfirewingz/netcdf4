@@ -40,6 +40,7 @@ class Group : public node::ObjectWrap
     static void AddSubgroup(const v8::FunctionCallbackInfo<v8::Value> &args);
     static void AddVariable(const v8::FunctionCallbackInfo<v8::Value> &args);
     static void Inspect(const v8::FunctionCallbackInfo<v8::Value> &args);
+    static void ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args);
 
     int id{-1};
 };

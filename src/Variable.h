@@ -68,6 +68,7 @@ class Variable : public node::ObjectWrap
     static void SetCompressionLevel(v8::Local<v8::String> property, v8::Local<v8::Value> val,
                                     const v8::PropertyCallbackInfo<void> &info);
     static void Inspect(const v8::FunctionCallbackInfo<v8::Value> &args);
+    static void ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args);
 
     static v8::Persistent<v8::Function> constructor;
 

@@ -25,6 +25,7 @@ void Dimension::Init(v8::Local<v8::Object> exports)
     tpl->SetClassName(v8::String::NewFromUtf8(isolate, "Dimension", v8::NewStringType::kNormal).ToLocalChecked());
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
     NODE_SET_PROTOTYPE_METHOD(tpl, "inspect", Dimension::Inspect);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "toJSON", Dimension::ToJSON);
     tpl->InstanceTemplate()->SetAccessor(
         v8::String::NewFromUtf8(isolate, "id", v8::NewStringType::kNormal).ToLocalChecked(), Dimension::GetId);
     tpl->InstanceTemplate()->SetAccessor(
@@ -101,5 +102,43 @@ void Dimension::Inspect(const v8::FunctionCallbackInfo<v8::Value> &args)
     v8::Isolate *isolate = args.GetIsolate();
     args.GetReturnValue().Set(
         v8::String::NewFromUtf8(isolate, "[object Dimension]", v8::NewStringType::kNormal).ToLocalChecked());
+}
+
+void Dimension::ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
+{
+    v8::Isolate *isolate = args.GetIsolate();
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    const auto *obj = node::ObjectWrap::Unwrap<Dimension>(args.Holder());
+    
+    v8::Local<v8::Object> json = v8::Object::New(isolate);
+    
+    // Add id
+    json->Set(context,
+              v8::String::NewFromUtf8(isolate, "id", v8::NewStringType::kNormal).ToLocalChecked(),
+              v8::Integer::New(isolate, obj->id))
+        .Check();
+    
+    // Add name
+    std::array<char, NC_MAX_NAME + 1> name{};
+    if (obj->get_name(name.data()))
+    {
+        json->Set(context,
+                  v8::String::NewFromUtf8(isolate, "name", v8::NewStringType::kNormal).ToLocalChecked(),
+                  v8::String::NewFromUtf8(isolate, name.data(), v8::NewStringType::kNormal).ToLocalChecked())
+            .Check();
+    }
+    
+    // Add length
+    size_t len = 0;
+    const int retval = nc_inq_dimlen(obj->parent_id, obj->id, &len);
+    if (retval == NC_NOERR)
+    {
+        json->Set(context,
+                  v8::String::NewFromUtf8(isolate, "length", v8::NewStringType::kNormal).ToLocalChecked(),
+                  v8::Integer::New(isolate, static_cast<int32_t>(len)))
+            .Check();
+    }
+    
+    args.GetReturnValue().Set(json);
 }
 } // namespace nodenetcdfjs

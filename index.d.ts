@@ -79,6 +79,11 @@ export class Attribute {
    * Inspect the attribute
    */
   inspect(): string;
+
+  /**
+   * Convert the attribute to a JSON-serializable object
+   */
+  toJSON(): { name: string; value: any };
 }
 
 /**
@@ -104,6 +109,11 @@ export class Dimension {
    * Inspect the dimension
    */
   inspect(): string;
+
+  /**
+   * Convert the dimension to a JSON-serializable object
+   */
+  toJSON(): { id: number; name: string; length: number };
 }
 
 /**
@@ -235,6 +245,17 @@ export class Variable {
    * Inspect the variable
    */
   inspect(): string;
+
+  /**
+   * Convert the variable to a JSON-serializable object (recursively serializes dimensions and attributes)
+   */
+  toJSON(): {
+    id: number;
+    name: string;
+    type: NetCDFDataType;
+    dimensions: Array<{ id: number; name: string; length: number }>;
+    attributes: { [name: string]: { name: string; value: any } };
+  };
 }
 
 /**
@@ -314,6 +335,19 @@ export class Group {
    * Inspect the group
    */
   inspect(): string;
+
+  /**
+   * Convert the group to a JSON-serializable object (recursively serializes all children: dimensions, variables, attributes, subgroups)
+   */
+  toJSON(): {
+    id: number;
+    name: string;
+    fullname: string;
+    dimensions: { [name: string]: { id: number; name: string; length: number } };
+    variables: { [name: string]: any };
+    attributes: { [name: string]: { name: string; value: any } };
+    subgroups: { [name: string]: any };
+  };
 }
 
 /**
@@ -347,4 +381,9 @@ export class File {
    * Inspect the file
    */
   inspect(): string;
+
+  /**
+   * Convert the file to a JSON-serializable object (serializes the entire file structure via root group)
+   */
+  toJSON(): any;
 }

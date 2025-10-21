@@ -46,6 +46,7 @@ void Attribute::Init(v8::Local<v8::Object> exports)
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
     NODE_SET_PROTOTYPE_METHOD(tpl, "delete", Attribute::Delete);
     NODE_SET_PROTOTYPE_METHOD(tpl, "inspect", Attribute::Inspect);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "toJSON", Attribute::ToJSON);
     tpl->InstanceTemplate()->SetAccessor(
         v8::String::NewFromUtf8(isolate, "name", v8::NewStringType::kNormal).ToLocalChecked(), Attribute::GetName,
         Attribute::SetName);
@@ -330,5 +331,31 @@ void Attribute::Inspect(const v8::FunctionCallbackInfo<v8::Value> &args)
     v8::Isolate *isolate = args.GetIsolate();
     args.GetReturnValue().Set(
         v8::String::NewFromUtf8(isolate, "[object Attribute]", v8::NewStringType::kNormal).ToLocalChecked());
+}
+
+void Attribute::ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
+{
+    v8::Isolate *isolate = args.GetIsolate();
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    const auto *obj = node::ObjectWrap::Unwrap<Attribute>(args.Holder());
+    
+    v8::Local<v8::Object> json = v8::Object::New(isolate);
+    
+    // Add name
+    json->Set(context,
+              v8::String::NewFromUtf8(isolate, "name", v8::NewStringType::kNormal).ToLocalChecked(),
+              v8::String::NewFromUtf8(isolate, obj->name.c_str(), v8::NewStringType::kNormal).ToLocalChecked())
+        .Check();
+    
+    // Add value - get from the object's value property
+    v8::Local<v8::String> valueProp = v8::String::NewFromUtf8(isolate, "value", v8::NewStringType::kNormal).ToLocalChecked();
+    v8::Local<v8::Value> value = args.Holder()->Get(context, valueProp).ToLocalChecked();
+    
+    json->Set(context,
+              v8::String::NewFromUtf8(isolate, "value", v8::NewStringType::kNormal).ToLocalChecked(),
+              value)
+        .Check();
+    
+    args.GetReturnValue().Set(json);
 }
 } // namespace nodenetcdfjs

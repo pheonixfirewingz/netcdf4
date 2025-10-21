@@ -38,6 +38,7 @@ void File::Init(v8::Local<v8::Object> exports)
     NODE_SET_PROTOTYPE_METHOD(tpl, "sync", File::Sync);
     NODE_SET_PROTOTYPE_METHOD(tpl, "close", File::Close);
     NODE_SET_PROTOTYPE_METHOD(tpl, "inspect", File::Inspect);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "toJSON", File::ToJSON);
     constructor.Reset(isolate, tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
     exports->Set(isolate->GetCurrentContext(),
                  v8::String::NewFromUtf8(isolate, "File", v8::NewStringType::kNormal).ToLocalChecked(),
@@ -166,5 +167,18 @@ void File::Inspect(const v8::FunctionCallbackInfo<v8::Value> &args)
     v8::Isolate *isolate = args.GetIsolate();
     args.GetReturnValue().Set(
         v8::String::NewFromUtf8(isolate, "[object File]", v8::NewStringType::kNormal).ToLocalChecked());
+}
+
+void File::ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
+{
+    v8::Isolate *isolate = args.GetIsolate();
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    
+    // Get the root group and serialize it
+    v8::Local<v8::String> rootProp = v8::String::NewFromUtf8(isolate, "root", v8::NewStringType::kNormal).ToLocalChecked();
+    v8::Local<v8::Value> root = args.Holder()->Get(context, rootProp).ToLocalChecked();
+    
+    // The root group's toJSON will automatically serialize all children recursively
+    args.GetReturnValue().Set(root);
 }
 } // namespace nodenetcdfjs
