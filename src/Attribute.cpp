@@ -339,19 +339,20 @@ void Attribute::ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
     const auto *obj = node::ObjectWrap::Unwrap<Attribute>(args.Holder());
     
+    // Use internalized strings for better performance
+    v8::Local<v8::String> name_str = v8::String::NewFromUtf8Literal(isolate, "name");
+    v8::Local<v8::String> value_str = v8::String::NewFromUtf8Literal(isolate, "value");
+    
     v8::Local<v8::Object> json = v8::Object::New(isolate);
     
     // Add name
-    json->Set(context,
-              v8::String::NewFromUtf8(isolate, "name", v8::NewStringType::kNormal).ToLocalChecked(),
-              v8::String::NewFromUtf8(isolate, obj->name.c_str(), v8::NewStringType::kNormal).ToLocalChecked())
-        .Check();
+    (void)json->CreateDataProperty(context, name_str,
+              v8::String::NewFromUtf8(isolate, obj->name.c_str(), v8::NewStringType::kInternalized).ToLocalChecked());
     
     // Add value - get from the object's value property
     // Use a TryCatch to handle errors when getting the value
     v8::TryCatch try_catch(isolate);
-    v8::Local<v8::String> valueProp = v8::String::NewFromUtf8(isolate, "value", v8::NewStringType::kNormal).ToLocalChecked();
-    v8::MaybeLocal<v8::Value> maybeValue = args.Holder()->Get(context, valueProp);
+    v8::MaybeLocal<v8::Value> maybeValue = args.Holder()->Get(context, value_str);
     v8::Local<v8::Value> value;
     
     if (!maybeValue.ToLocal(&value) || try_catch.HasCaught())
@@ -365,10 +366,7 @@ void Attribute::ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
         value = v8::Null(isolate);
     }
     
-    json->Set(context,
-              v8::String::NewFromUtf8(isolate, "value", v8::NewStringType::kNormal).ToLocalChecked(),
-              value)
-        .Check();
+    (void)json->CreateDataProperty(context, value_str, value);
     
     args.GetReturnValue().Set(json);
 }

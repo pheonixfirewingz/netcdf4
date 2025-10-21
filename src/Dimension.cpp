@@ -110,22 +110,22 @@ void Dimension::ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
     const auto *obj = node::ObjectWrap::Unwrap<Dimension>(args.Holder());
     
+    // Use internalized strings for better performance
+    v8::Local<v8::String> id_str = v8::String::NewFromUtf8Literal(isolate, "id");
+    v8::Local<v8::String> name_str = v8::String::NewFromUtf8Literal(isolate, "name");
+    v8::Local<v8::String> length_str = v8::String::NewFromUtf8Literal(isolate, "length");
+    
     v8::Local<v8::Object> json = v8::Object::New(isolate);
     
     // Add id
-    json->Set(context,
-              v8::String::NewFromUtf8(isolate, "id", v8::NewStringType::kNormal).ToLocalChecked(),
-              v8::Integer::New(isolate, obj->id))
-        .Check();
+    (void)json->CreateDataProperty(context, id_str, v8::Integer::New(isolate, obj->id));
     
     // Add name
     std::array<char, NC_MAX_NAME + 1> name{};
     if (obj->get_name(name.data()))
     {
-        json->Set(context,
-                  v8::String::NewFromUtf8(isolate, "name", v8::NewStringType::kNormal).ToLocalChecked(),
-                  v8::String::NewFromUtf8(isolate, name.data(), v8::NewStringType::kNormal).ToLocalChecked())
-            .Check();
+        (void)json->CreateDataProperty(context, name_str,
+                  v8::String::NewFromUtf8(isolate, name.data(), v8::NewStringType::kInternalized).ToLocalChecked());
     }
     
     // Add length
@@ -133,10 +133,7 @@ void Dimension::ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
     const int retval = nc_inq_dimlen(obj->parent_id, obj->id, &len);
     if (retval == NC_NOERR)
     {
-        json->Set(context,
-                  v8::String::NewFromUtf8(isolate, "length", v8::NewStringType::kNormal).ToLocalChecked(),
-                  v8::Integer::New(isolate, static_cast<int32_t>(len)))
-            .Check();
+        (void)json->CreateDataProperty(context, length_str, v8::Integer::New(isolate, static_cast<int32_t>(len)));
     }
     
     args.GetReturnValue().Set(json);

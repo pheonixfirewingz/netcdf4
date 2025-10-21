@@ -245,6 +245,7 @@ void Group::GetId(v8::Local<v8::String> property, const v8::PropertyCallbackInfo
 void Group::GetVariables(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &info)
 {
     v8::Isolate *isolate = info.GetIsolate();
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
     const auto *obj = node::ObjectWrap::Unwrap<Group>(info.Holder());
 
     int nvars = 0;
@@ -271,8 +272,8 @@ void Group::GetVariables(v8::Local<v8::String> property, const v8::PropertyCallb
         auto *v = new Variable(var_ids[i], obj->id);
         if (v->get_name(name.data()))
         {
-            result->Set(isolate->GetCurrentContext(),
-                        v8::String::NewFromUtf8(isolate, name.data(), v8::NewStringType::kNormal).ToLocalChecked(),
+            (void)result->CreateDataProperty(context,
+                        v8::String::NewFromUtf8(isolate, name.data(), v8::NewStringType::kInternalized).ToLocalChecked(),
                         v->handle());
         }
         else
@@ -286,6 +287,7 @@ void Group::GetVariables(v8::Local<v8::String> property, const v8::PropertyCallb
 void Group::GetDimensions(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &info)
 {
     v8::Isolate *isolate = info.GetIsolate();
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
     const auto *obj = node::ObjectWrap::Unwrap<Group>(info.Holder());
 
     int ndims = 0;
@@ -312,10 +314,8 @@ void Group::GetDimensions(v8::Local<v8::String> property, const v8::PropertyCall
         auto *d = new Dimension(dim_ids[i], obj->id);
         if (d->get_name(name.data()))
         {
-            // Suppress warning about unused return value
-            (void)result->Set(
-                isolate->GetCurrentContext(),
-                v8::String::NewFromUtf8(isolate, name.data(), v8::NewStringType::kNormal).ToLocalChecked(),
+            (void)result->CreateDataProperty(context,
+                v8::String::NewFromUtf8(isolate, name.data(), v8::NewStringType::kInternalized).ToLocalChecked(),
                 d->handle());
         }
         else
@@ -327,6 +327,7 @@ void Group::GetDimensions(v8::Local<v8::String> property, const v8::PropertyCall
 void Group::GetUnlimited(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &info)
 {
     v8::Isolate *isolate = info.GetIsolate();
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
     const auto *obj = node::ObjectWrap::Unwrap<Group>(info.Holder());
 
     int ndims = 0;
@@ -353,9 +354,8 @@ void Group::GetUnlimited(v8::Local<v8::String> property, const v8::PropertyCallb
         auto *d = new Dimension(dim_ids[i], obj->id);
         if (d->get_name(name.data()))
         {
-             // Suppress warning about unused return value
-             (void)result->Set(isolate->GetCurrentContext(),
-                        v8::String::NewFromUtf8(isolate, name.data(), v8::NewStringType::kNormal).ToLocalChecked(),
+             (void)result->CreateDataProperty(context,
+                        v8::String::NewFromUtf8(isolate, name.data(), v8::NewStringType::kInternalized).ToLocalChecked(),
                         d->handle());
         }
         else return;
@@ -366,6 +366,7 @@ void Group::GetUnlimited(v8::Local<v8::String> property, const v8::PropertyCallb
 void Group::GetAttributes(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &info)
 {
     v8::Isolate *isolate = info.GetIsolate();
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
     const auto *obj = node::ObjectWrap::Unwrap<Group>(info.Holder());
 
     int natts = 0;
@@ -388,8 +389,8 @@ void Group::GetAttributes(v8::Local<v8::String> property, const v8::PropertyCall
             return;
         }
         auto *a = new Attribute(name.data(), NC_GLOBAL, obj->id);
-        result->Set(isolate->GetCurrentContext(),
-                    v8::String::NewFromUtf8(isolate, name.data(), v8::NewStringType::kNormal).ToLocalChecked(),
+        (void)result->CreateDataProperty(context,
+                    v8::String::NewFromUtf8(isolate, name.data(), v8::NewStringType::kInternalized).ToLocalChecked(),
                     a->handle());
     }
     info.GetReturnValue().Set(result);
@@ -398,6 +399,7 @@ void Group::GetAttributes(v8::Local<v8::String> property, const v8::PropertyCall
 void Group::GetSubgroups(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &info)
 {
     v8::Isolate *isolate = info.GetIsolate();
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
     const auto *obj = node::ObjectWrap::Unwrap<Group>(info.Holder());
 
     int ngrps = 0;
@@ -424,9 +426,8 @@ void Group::GetSubgroups(v8::Local<v8::String> property, const v8::PropertyCallb
         auto *g = new Group(grp_ids[i]);
         if (g->get_name(name.data()))
         {
-             // Suppress warning about unused return value
-             (void)result->Set(isolate->GetCurrentContext(),
-                        v8::String::NewFromUtf8(isolate, name.data(), v8::NewStringType::kNormal).ToLocalChecked(),
+             (void)result->CreateDataProperty(context,
+                        v8::String::NewFromUtf8(isolate, name.data(), v8::NewStringType::kInternalized).ToLocalChecked(),
                         g->handle());
         }
         else
@@ -488,22 +489,26 @@ void Group::ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
     const auto *obj = node::ObjectWrap::Unwrap<Group>(args.Holder());
     
+    // Use internalized strings for better performance
+    v8::Local<v8::String> id_str = v8::String::NewFromUtf8Literal(isolate, "id");
+    v8::Local<v8::String> name_str = v8::String::NewFromUtf8Literal(isolate, "name");
+    v8::Local<v8::String> fullname_str = v8::String::NewFromUtf8Literal(isolate, "fullname");
+    v8::Local<v8::String> dimensions_str = v8::String::NewFromUtf8Literal(isolate, "dimensions");
+    v8::Local<v8::String> variables_str = v8::String::NewFromUtf8Literal(isolate, "variables");
+    v8::Local<v8::String> attributes_str = v8::String::NewFromUtf8Literal(isolate, "attributes");
+    v8::Local<v8::String> subgroups_str = v8::String::NewFromUtf8Literal(isolate, "subgroups");
+    
     v8::Local<v8::Object> json = v8::Object::New(isolate);
     
     // Add id
-    json->Set(context,
-              v8::String::NewFromUtf8(isolate, "id", v8::NewStringType::kNormal).ToLocalChecked(),
-              v8::Integer::New(isolate, obj->id))
-        .Check();
+    (void)json->CreateDataProperty(context, id_str, v8::Integer::New(isolate, obj->id));
     
     // Add name
     std::array<char, NC_MAX_NAME + 1> name{};
     if (obj->get_name(name.data()))
     {
-        json->Set(context,
-                  v8::String::NewFromUtf8(isolate, "name", v8::NewStringType::kNormal).ToLocalChecked(),
-                  v8::String::NewFromUtf8(isolate, name.data(), v8::NewStringType::kNormal).ToLocalChecked())
-            .Check();
+        (void)json->CreateDataProperty(context, name_str,
+                  v8::String::NewFromUtf8(isolate, name.data(), v8::NewStringType::kInternalized).ToLocalChecked());
     }
     
     // Add fullname
@@ -515,43 +520,35 @@ void Group::ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
         retval = nc_inq_grpname_full(obj->id, nullptr, fullname.data());
         if (retval == NC_NOERR)
         {
-            json->Set(context,
-                      v8::String::NewFromUtf8(isolate, "fullname", v8::NewStringType::kNormal).ToLocalChecked(),
-                      v8::String::NewFromUtf8(isolate, fullname.data(), v8::NewStringType::kNormal).ToLocalChecked())
-                .Check();
+            (void)json->CreateDataProperty(context, fullname_str,
+                      v8::String::NewFromUtf8(isolate, fullname.data(), v8::NewStringType::kInternalized).ToLocalChecked());
         }
     }
     
-    // Add dimensions object with serialized dimension objects
-    v8::Local<v8::String> dimProp = v8::String::NewFromUtf8(isolate, "dimensions", v8::NewStringType::kNormal).ToLocalChecked();
-    v8::Local<v8::Value> dimensions = args.Holder()->Get(context, dimProp).ToLocalChecked();
+    // Add dimensions, variables, attributes, subgroups
+    // These will be accessed through property getters which trigger the respective Get* methods
+    v8::Local<v8::Value> dimensions = args.Holder()->Get(context, dimensions_str).ToLocalChecked();
     if (dimensions->IsObject())
     {
-        json->Set(context, dimProp, dimensions).Check();
+        (void)json->CreateDataProperty(context, dimensions_str, dimensions);
     }
     
-    // Add variables object with serialized variable objects
-    v8::Local<v8::String> varProp = v8::String::NewFromUtf8(isolate, "variables", v8::NewStringType::kNormal).ToLocalChecked();
-    v8::Local<v8::Value> variables = args.Holder()->Get(context, varProp).ToLocalChecked();
+    v8::Local<v8::Value> variables = args.Holder()->Get(context, variables_str).ToLocalChecked();
     if (variables->IsObject())
     {
-        json->Set(context, varProp, variables).Check();
+        (void)json->CreateDataProperty(context, variables_str, variables);
     }
     
-    // Add attributes object with serialized attribute objects
-    v8::Local<v8::String> attrProp = v8::String::NewFromUtf8(isolate, "attributes", v8::NewStringType::kNormal).ToLocalChecked();
-    v8::Local<v8::Value> attributes = args.Holder()->Get(context, attrProp).ToLocalChecked();
+    v8::Local<v8::Value> attributes = args.Holder()->Get(context, attributes_str).ToLocalChecked();
     if (attributes->IsObject())
     {
-        json->Set(context, attrProp, attributes).Check();
+        (void)json->CreateDataProperty(context, attributes_str, attributes);
     }
     
-    // Add subgroups object with serialized subgroup objects
-    v8::Local<v8::String> subgroupsProp = v8::String::NewFromUtf8(isolate, "subgroups", v8::NewStringType::kNormal).ToLocalChecked();
-    v8::Local<v8::Value> subgroups = args.Holder()->Get(context, subgroupsProp).ToLocalChecked();
+    v8::Local<v8::Value> subgroups = args.Holder()->Get(context, subgroups_str).ToLocalChecked();
     if (subgroups->IsObject())
     {
-        json->Set(context, subgroupsProp, subgroups).Check();
+        (void)json->CreateDataProperty(context, subgroups_str, subgroups);
     }
     
     args.GetReturnValue().Set(json);

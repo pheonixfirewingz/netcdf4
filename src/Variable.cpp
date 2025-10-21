@@ -679,6 +679,7 @@ void Variable::GetDimensions(v8::Local<v8::String> property, const v8::PropertyC
 void Variable::GetAttributes(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &info)
 {
     v8::Isolate *isolate = info.GetIsolate();
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
     Variable *obj = node::ObjectWrap::Unwrap<Variable>(info.Holder());
     int natts;
     int retval = nc_inq_varnatts(obj->parent_id, obj->id, &natts);
@@ -698,8 +699,8 @@ void Variable::GetAttributes(v8::Local<v8::String> property, const v8::PropertyC
             return;
         }
         Attribute *a = new Attribute(name, obj->id, obj->parent_id);
-        result->Set(isolate->GetCurrentContext(),
-                    v8::String::NewFromUtf8(isolate, name, v8::NewStringType::kNormal).ToLocalChecked(), a->handle());
+        (void)result->CreateDataProperty(context,
+                    v8::String::NewFromUtf8(isolate, name, v8::NewStringType::kInternalized).ToLocalChecked(), a->handle());
     }
     info.GetReturnValue().Set(result);
 }
@@ -1357,45 +1358,43 @@ void Variable::ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
     const auto *obj = node::ObjectWrap::Unwrap<Variable>(args.Holder());
     
+    // Use internalized strings for better performance
+    v8::Local<v8::String> id_str = v8::String::NewFromUtf8Literal(isolate, "id");
+    v8::Local<v8::String> name_str = v8::String::NewFromUtf8Literal(isolate, "name");
+    v8::Local<v8::String> type_str = v8::String::NewFromUtf8Literal(isolate, "type");
+    v8::Local<v8::String> dimensions_str = v8::String::NewFromUtf8Literal(isolate, "dimensions");
+    v8::Local<v8::String> attributes_str = v8::String::NewFromUtf8Literal(isolate, "attributes");
+    
     v8::Local<v8::Object> json = v8::Object::New(isolate);
     
     // Add id
-    json->Set(context,
-              v8::String::NewFromUtf8(isolate, "id", v8::NewStringType::kNormal).ToLocalChecked(),
-              v8::Integer::New(isolate, obj->id))
-        .Check();
+    (void)json->CreateDataProperty(context, id_str, v8::Integer::New(isolate, obj->id));
     
     // Add name
     char name[NC_MAX_NAME + 1];
     if (obj->get_name(name))
     {
-        json->Set(context,
-                  v8::String::NewFromUtf8(isolate, "name", v8::NewStringType::kNormal).ToLocalChecked(),
-                  v8::String::NewFromUtf8(isolate, name, v8::NewStringType::kNormal).ToLocalChecked())
-            .Check();
+        (void)json->CreateDataProperty(context, name_str,
+                  v8::String::NewFromUtf8(isolate, name, v8::NewStringType::kInternalized).ToLocalChecked());
     }
     
     // Add type
     const char *type_name = (obj->type < NC_BYTE || obj->type > NC_UINT) ? "unknown" : type_names[obj->type];
-    json->Set(context,
-              v8::String::NewFromUtf8(isolate, "type", v8::NewStringType::kNormal).ToLocalChecked(),
-              v8::String::NewFromUtf8(isolate, type_name, v8::NewStringType::kNormal).ToLocalChecked())
-        .Check();
+    (void)json->CreateDataProperty(context, type_str,
+              v8::String::NewFromUtf8(isolate, type_name, v8::NewStringType::kInternalized).ToLocalChecked());
     
     // Add dimensions array with serialized dimension objects
-    v8::Local<v8::String> dimProp = v8::String::NewFromUtf8(isolate, "dimensions", v8::NewStringType::kNormal).ToLocalChecked();
-    v8::Local<v8::Value> dimensions = args.Holder()->Get(context, dimProp).ToLocalChecked();
+    v8::Local<v8::Value> dimensions = args.Holder()->Get(context, dimensions_str).ToLocalChecked();
     if (dimensions->IsArray())
     {
-        json->Set(context, dimProp, dimensions).Check();
+        (void)json->CreateDataProperty(context, dimensions_str, dimensions);
     }
     
     // Add attributes object with serialized attribute objects
-    v8::Local<v8::String> attrProp = v8::String::NewFromUtf8(isolate, "attributes", v8::NewStringType::kNormal).ToLocalChecked();
-    v8::Local<v8::Value> attributes = args.Holder()->Get(context, attrProp).ToLocalChecked();
+    v8::Local<v8::Value> attributes = args.Holder()->Get(context, attributes_str).ToLocalChecked();
     if (attributes->IsObject())
     {
-        json->Set(context, attrProp, attributes).Check();
+        (void)json->CreateDataProperty(context, attributes_str, attributes);
     }
     
     args.GetReturnValue().Set(json);

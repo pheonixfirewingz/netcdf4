@@ -1,6 +1,6 @@
 {
   "name": "nodenetcdf",
-  "version": "4.9.52",
+  "version": "4.9.31",
   "description": "Read and write NodeNetCDF files",
   "main": "./build/Release/nodenetcdf.node",
   "types": "./index.d.ts",
