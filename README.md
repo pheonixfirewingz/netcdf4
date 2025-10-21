@@ -2,6 +2,8 @@
 
 A Node.js native addon for reading and writing NodeNetCDF files, providing a comprehensive interface to the NetCDF-4 C library.
 
+IMPORTANT NOTE: this project dose not follow conventional open source standards we will accept PR's but we will not be actively changeing code unless something breaks
+
 ## Overview
 
 This package provides Node.js bindings to the NetCDF-4 library, allowing you to read and write NodeNetCDF files directly from JavaScript. NetCDF (Network Common Data Form) is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data.
