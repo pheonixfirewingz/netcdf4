@@ -1,12 +1,12 @@
 #include "File.h"
 #include "Group.h"
 #include "Variable.h"
-#include "netcdf4js.h"
+#include "nodenetcdfjs.h"
 #include <netcdf.h>
 #include <string>
 
 
-namespace netcdf4js
+namespace nodenetcdfjs
 {
 
 v8::Persistent<v8::Function> File::constructor;
@@ -63,7 +63,7 @@ void File::New(const v8::FunctionCallbackInfo<v8::Value> &args)
         const std::string mode_arg =
             *v8::String::Utf8Value(isolate, args[1]->ToString(isolate->GetCurrentContext()).ToLocalChecked());
 
-        int format = NC_NETCDF4;
+        int format = NC_NODENETCDF;
         int id = -1;
 
         if (args.Length() > 2)
@@ -79,13 +79,13 @@ void File::New(const v8::FunctionCallbackInfo<v8::Value> &args)
             {
                 format = NC_64BIT_OFFSET;
             }
-            else if (format_arg == "netcdf4")
+            else if (format_arg == "nodenetcdf")
             {
-                format = NC_NETCDF4;
+                format = NC_NODENETCDF;
             }
-            else if (format_arg == "netcdf4classic")
+            else if (format_arg == "nodenetcdfclassic")
             {
-                format = NC_NETCDF4 | NC_CLASSIC_MODEL;
+                format = NC_NODENETCDF | NC_CLASSIC_MODEL;
             }
             else
             {
@@ -167,4 +167,4 @@ void File::Inspect(const v8::FunctionCallbackInfo<v8::Value> &args)
     args.GetReturnValue().Set(
         v8::String::NewFromUtf8(isolate, "[object File]", v8::NewStringType::kNormal).ToLocalChecked());
 }
-} // namespace netcdf4js
+} // namespace nodenetcdfjs

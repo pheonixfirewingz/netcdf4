@@ -63,7 +63,7 @@ if (!fs.existsSync(vcpkgPath)) {
   console.log('vcpkg already bootstrapped');
 }
 
-// Install netcdf4 using vcpkg
+// Install nodenetcdf using vcpkg
 console.log(`Installing netcdf-c for ${triplet}...`);
 try {
   runCommand(`${vcpkgPath} install netcdf-c:${triplet}`);

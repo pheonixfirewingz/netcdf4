@@ -6,7 +6,7 @@
 #include <node.h>
 
 
-namespace netcdf4js
+namespace nodenetcdfjs
 {
 void InitAll(v8::Local<v8::Object> exports)
 {
@@ -21,4 +21,4 @@ NODE_MODULE_INIT()
 {
     InitAll(exports);
 }
-} // namespace netcdf4js
+} // namespace nodenetcdfjs

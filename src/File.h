@@ -1,10 +1,10 @@
-#ifndef NETCDF4JS_FILE_H
-#define NETCDF4JS_FILE_H
+#ifndef NODENETCDFJS_FILE_H
+#define NODENETCDFJS_FILE_H
 
 #include <node.h>
 #include <node_object_wrap.h>
 
-namespace netcdf4js
+namespace nodenetcdfjs
 {
 
 class Group;
@@ -37,6 +37,6 @@ class File : public node::ObjectWrap
     bool closed{false};
 };
 
-} // namespace netcdf4js
+} // namespace nodenetcdfjs
 
 #endif

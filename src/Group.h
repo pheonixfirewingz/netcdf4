@@ -1,10 +1,10 @@
-#ifndef NETCDF4JS_GROUP_H
-#define NETCDF4JS_GROUP_H
+#ifndef NODENETCDFJS_GROUP_H
+#define NODENETCDFJS_GROUP_H
 
 #include <node.h>
 #include <node_object_wrap.h>
 
-namespace netcdf4js
+namespace nodenetcdfjs
 {
 
 class Variable;
@@ -44,6 +44,6 @@ class Group : public node::ObjectWrap
     int id{-1};
 };
 
-} // namespace netcdf4js
+} // namespace nodenetcdfjs
 
 #endif

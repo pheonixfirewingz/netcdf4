@@ -1,5 +1,5 @@
-#ifndef NETCDF4JS_VARIABLE_H
-#define NETCDF4JS_VARIABLE_H
+#ifndef NODENETCDFJS_VARIABLE_H
+#define NODENETCDFJS_VARIABLE_H
 
 #include <array>
 #include <netcdf.h>
@@ -7,7 +7,7 @@
 #include <node_object_wrap.h>
 
 
-namespace netcdf4js
+namespace nodenetcdfjs
 {
 
 class Variable : public node::ObjectWrap
@@ -83,6 +83,6 @@ class Variable : public node::ObjectWrap
     int ndims{0};
 };
 
-} // namespace netcdf4js
+} // namespace nodenetcdfjs
 
 #endif

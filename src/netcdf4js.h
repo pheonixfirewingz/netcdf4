@@ -1,5 +1,5 @@
-#ifndef NETCDF4JS_H
-#define NETCDF4JS_H
+#ifndef NODENETCDFJS_H
+#define NODENETCDFJS_H
 
 #include <netcdf.h>
 #include <node.h>
@@ -7,7 +7,7 @@
 #include <string_view>
 #include <unordered_map>
 
-namespace netcdf4js
+namespace nodenetcdfjs
 {
 
 inline void throw_netcdf_error(v8::Isolate *isolate, int retval) noexcept(false)
@@ -32,6 +32,6 @@ inline void throw_netcdf_error(v8::Isolate *isolate, int retval) noexcept(false)
     return NC_NAT;
 }
 
-} // namespace netcdf4js
+} // namespace nodenetcdfjs
 
 #endif

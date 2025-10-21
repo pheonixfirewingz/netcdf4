@@ -1,8 +1,8 @@
 {
-  "name": "netcdf4",
+  "name": "nodenetcdf",
   "version": "4.9.3",
-  "description": "Read and write NetCDF4 files",
-  "main": "./build/Release/netcdf4.node",
+  "description": "Read and write NodeNetCDF files",
+  "main": "./build/Release/nodenetcdf.node",
   "scripts": {
     "preinstall": "node scripts/setup-vcpkg.js",
     "install": "node scripts/verify-build-deps.js && node-gyp configure build",
@@ -19,7 +19,7 @@
     "Andrea Parodi <andrea@parro.it> (http://www.parro.it/)",
     "Sven Willner <sven.willner@gmail.com> (http://svenwillner.net)"
   ],
-  "repository": "parro-it/netcdf4",
+  "repository": "parro-it/nodenetcdf",
   "engines": {
     "node": ">=22.0.0"
   },

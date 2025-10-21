@@ -1,9 +1,9 @@
 #include "Variable.h"
 #include "Attribute.h"
 #include "Dimension.h"
-#include "netcdf4js.h"
+#include "nodenetcdfjs.h"
 
-namespace netcdf4js
+namespace nodenetcdfjs
 {
 
 // Static constexpr arrays are defined in the header file
@@ -1349,4 +1349,4 @@ void Variable::Inspect(const v8::FunctionCallbackInfo<v8::Value> &args)
     args.GetReturnValue().Set(
         v8::String::NewFromUtf8(isolate, "[object Variable]", v8::NewStringType::kNormal).ToLocalChecked());
 }
-} // namespace netcdf4js
+} // namespace nodenetcdfjs

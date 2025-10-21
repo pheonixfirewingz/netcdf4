@@ -1,9 +1,9 @@
 #include "Dimension.h"
-#include "netcdf4js.h"
+#include "nodenetcdfjs.h"
 #include <netcdf.h>
 
 
-namespace netcdf4js
+namespace nodenetcdfjs
 {
 
 v8::Persistent<v8::Function> Dimension::constructor;
@@ -102,4 +102,4 @@ void Dimension::Inspect(const v8::FunctionCallbackInfo<v8::Value> &args)
     args.GetReturnValue().Set(
         v8::String::NewFromUtf8(isolate, "[object Dimension]", v8::NewStringType::kNormal).ToLocalChecked());
 }
-} // namespace netcdf4js
+} // namespace nodenetcdfjs

@@ -1,16 +1,20 @@
-# netcdf4
+# nodenetcdf
 
-A Node.js native addon for reading and writing NetCDF4 files, providing a comprehensive interface to the NetCDF-4 C library.
+[![Ubuntu Build](https://github.com/pheonixfirewingz/nodenetcdf/actions/workflows/nodejs.yml/badge.svg?event=push&os=ubuntu-latest)](https://github.com/pheonixfirewingz/nodenetcdf/actions/workflows/nodejs.yml)
+[![Windows Build](https://github.com/pheonixfirewingz/nodenetcdf/actions/workflows/nodejs.yml/badge.svg?event=push&os=windows-latest)](https://github.com/pheonixfirewingz/nodenetcdf/actions/workflows/nodejs.yml)
+[![macOS Build](https://github.com/pheonixfirewingz/nodenetcdf/actions/workflows/nodejs.yml/badge.svg?event=push&os=macos-latest)](https://github.com/pheonixfirewingz/nodenetcdf/actions/workflows/nodejs.yml)
+
+A Node.js native addon for reading and writing NodeNetCDF files, providing a comprehensive interface to the NetCDF-4 C library.
 
 ## Overview
 
-This package provides Node.js bindings to the NetCDF-4 library, allowing you to read and write NetCDF4 files directly from JavaScript. NetCDF (Network Common Data Form) is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data.
+This package provides Node.js bindings to the NetCDF-4 library, allowing you to read and write NodeNetCDF files directly from JavaScript. NetCDF (Network Common Data Form) is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data.
 
 ### Features
 
-- Read and write NetCDF4 files
+- Read and write NodeNetCDF files
 - Full support for groups, variables, dimensions, and attributes
-- Support for all NetCDF4 data types
+- Support for all NodeNetCDF data types
 - Chunk mode and compression options
 - Fill values and endianness control
 - Strided slice operations for efficient data access
@@ -25,7 +29,7 @@ This package provides Node.js bindings to the NetCDF-4 library, allowing you to 
 ## Installation
 
 ```bash
-npm install netcdf4
+npm install nodenetcdf
 ```
 
 The installation process will:
@@ -53,13 +57,13 @@ The installation process will:
 ### Opening a NetCDF File
 
 ```javascript
-const netcdf4 = require('netcdf4');
+const nodenetcdf = require('nodenetcdf');
 
 // Open an existing file for reading
-const file = new netcdf4.File('path/to/file.nc', 'r');
+const file = new nodenetcdf.File('path/to/file.nc', 'r');
 
 // Create a new file
-const newFile = new netcdf4.File('path/to/new-file.nc', 'w', 'netcdf4');
+const newFile = new nodenetcdf.File('path/to/new-file.nc', 'w', 'nodenetcdf');
 
 // Available modes:
 // 'r'  - read-only
@@ -68,7 +72,7 @@ const newFile = new netcdf4.File('path/to/new-file.nc', 'w', 'netcdf4');
 // 'a'  - append (read/write existing file)
 
 // Available formats:
-// 'netcdf4' - NetCDF-4 format
+// 'nodenetcdf' - NetCDF-4 format
 // 'classic'  - NetCDF classic format
 // '64bit'    - 64-bit offset format
 ```
@@ -292,7 +296,7 @@ The build process uses:
 
 ## Original Project and License
 
-This is a fork and modernization of the original [netcdf4](https://github.com/parro-it/netcdf4) project.
+This is a fork and modernization of the original [nodenetcdf](https://github.com/parro-it/nodenetcdf) project.
 
 ### Original Contributors
 
@@ -323,6 +327,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ## Links
 
-- [Original Project](https://github.com/parro-it/netcdf4)
+- [Original Project](https://github.com/parro-it/nodenetcdf)
 - [NetCDF Documentation](https://www.unidata.ucar.edu/software/netcdf/docs/)
-- [GitHub Repository](https://github.com/pheonixfirewingz/netcdf4)
+- [GitHub Repository](https://github.com/pheonixfirewingz/nodenetcdf)

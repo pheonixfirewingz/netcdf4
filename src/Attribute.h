@@ -1,11 +1,11 @@
-#ifndef NETCDF4JS_ATTRIBUTE_H
-#define NETCDF4JS_ATTRIBUTE_H
+#ifndef NODENETCDFJS_ATTRIBUTE_H
+#define NODENETCDFJS_ATTRIBUTE_H
 
 #include <node.h>
 #include <node_object_wrap.h>
 #include <string>
 
-namespace netcdf4js
+namespace nodenetcdfjs
 {
 
 class Attribute : public node::ObjectWrap
@@ -41,6 +41,6 @@ class Attribute : public node::ObjectWrap
     int type{-1};
 };
 
-} // namespace netcdf4js
+} // namespace nodenetcdfjs
 
 #endif

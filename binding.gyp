@@ -7,9 +7,9 @@
         "src/Variable.cpp",
         "src/Dimension.cpp",
         "src/Attribute.cpp",
-        "src/netcdf4js.cpp"
+        "src/nodenetcdfjs.cpp"
       ],
-      "target_name": "netcdf4",
+      "target_name": "nodenetcdf",
       "cflags!": [ "-fno-exceptions" ],
       "cflags_cc!": [ "-fno-exceptions" ],
       "cflags": [ "-std=c++20" ],

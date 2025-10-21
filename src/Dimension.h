@@ -1,10 +1,10 @@
-#ifndef NETCDF4JS_DIMENSION_H
-#define NETCDF4JS_DIMENSION_H
+#ifndef NODENETCDFJS_DIMENSION_H
+#define NODENETCDFJS_DIMENSION_H
 
 #include <node.h>
 #include <node_object_wrap.h>
 
-namespace netcdf4js
+namespace nodenetcdfjs
 {
 
 class Dimension : public node::ObjectWrap
@@ -35,6 +35,6 @@ class Dimension : public node::ObjectWrap
     int parent_id{-1};
 };
 
-} // namespace netcdf4js
+} // namespace nodenetcdfjs
 
 #endif

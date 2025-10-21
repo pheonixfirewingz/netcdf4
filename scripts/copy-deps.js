@@ -11,7 +11,7 @@ if (platform === 'win32') {
 } else if (platform === 'linux') {
   vcpkgDir = 'vcpkg/installed/x64-linux/lib';
 } else if (platform === 'darwin') {
-  vcpkgDir = 'vcpkg/installed/x64-osx/lib';
+  vcpkgDir = 'vcpkg/installed/arm64-osx/lib';
 } else {
   console.log('Unknown platform, skipping dependency copy');
   process.exit(0);
