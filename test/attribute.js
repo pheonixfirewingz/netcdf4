@@ -33,4 +33,46 @@ describe('Attribute', function() {
             expect(attributes["name"].value).to.equal("air_pressure");
         });
     });
+
+    describe('toJSON', function() {
+        it('should serialize attribute without crashing', function() {
+            var file = new nodenetcdf.File("test/test_hgroups.nc", "r");
+            var attributes = file.root.subgroups["mozaic_flight_2012030419144751_ascent"].attributes;
+            var attr = attributes["airport_dep"];
+            
+            // Explicitly call toJSON to test the V8 ToLocalChecked fix
+            var json = attr.toJSON();
+            
+            expect(json).to.be.an('object');
+            expect(json).to.have.property('name', 'airport_dep');
+            expect(json).to.have.property('value', 'FRA');
+        });
+
+        it('should handle variable attribute toJSON without crashing', function() {
+            var file = new nodenetcdf.File("test/test_hgroups.nc", "r");
+            var attributes = file.root.subgroups["mozaic_flight_2012030419144751_ascent"].variables["air_press"].attributes;
+            var attr = attributes["name"];
+            
+            // Explicitly call toJSON to test the V8 ToLocalChecked fix
+            var json = attr.toJSON();
+            
+            expect(json).to.be.an('object');
+            expect(json).to.have.property('name', 'name');
+            expect(json).to.have.property('value', 'air_pressure');
+        });
+
+        it('should work with JSON.stringify', function() {
+            var file = new nodenetcdf.File("test/test_hgroups.nc", "r");
+            var attributes = file.root.subgroups["mozaic_flight_2012030419144751_ascent"].attributes;
+            var attr = attributes["airport_dep"];
+            
+            // Test that JSON.stringify (which calls toJSON internally) works
+            var jsonString = JSON.stringify(attr);
+            var json = JSON.parse(jsonString);
+            
+            expect(json).to.be.an('object');
+            expect(json).to.have.property('name', 'airport_dep');
+            expect(json).to.have.property('value', 'FRA');
+        });
+    });
 });

@@ -349,7 +349,14 @@ void Attribute::ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
     
     // Add value - get from the object's value property
     v8::Local<v8::String> valueProp = v8::String::NewFromUtf8(isolate, "value", v8::NewStringType::kNormal).ToLocalChecked();
-    v8::Local<v8::Value> value = args.Holder()->Get(context, valueProp).ToLocalChecked();
+    v8::MaybeLocal<v8::Value> maybeValue = args.Holder()->Get(context, valueProp);
+    v8::Local<v8::Value> value;
+    
+    if (!maybeValue.ToLocal(&value))
+    {
+        // If getting the value failed, return early (exception already pending)
+        return;
+    }
     
     json->Set(context,
               v8::String::NewFromUtf8(isolate, "value", v8::NewStringType::kNormal).ToLocalChecked(),
