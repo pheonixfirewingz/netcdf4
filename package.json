@@ -19,7 +19,7 @@
     "Andrea Parodi <andrea@parro.it> (http://www.parro.it/)",
     "Sven Willner <sven.willner@gmail.com> (http://svenwillner.net)"
   ],
-  "repository": "parro-it/nodenetcdf",
+  "repository": "pheonixfirewingz/nodenetcdf",
   "engines": {
     "node": ">=22.0.0"
   },
