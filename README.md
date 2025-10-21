@@ -8,9 +8,9 @@ This package provides Node.js bindings to the NetCDF-4 library, allowing you to 
 
 ### Features
 
-- Read and write NodeNetCDF files
+- Read and write NetCDF-4 files
 - Full support for groups, variables, dimensions, and attributes
-- Support for all NodeNetCDF data types
+- Support for all NetCDF-4 data types
 - Chunk mode and compression options
 - Fill values and endianness control
 - Strided slice operations for efficient data access
