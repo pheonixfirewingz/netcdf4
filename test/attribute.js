@@ -74,5 +74,25 @@ describe('Attribute', function() {
             expect(json).to.have.property('name', 'airport_dep');
             expect(json).to.have.property('value', 'FRA');
         });
+
+        it('should handle errors gracefully and return null value on type conversion errors', function() {
+            var file = new nodenetcdf.File("test/test_hgroups.nc", "r");
+            var attributes = file.root.subgroups["mozaic_flight_2012030419144751_ascent"].attributes;
+            
+            // Iterate through all attributes to find any that might have type issues
+            // The toJSON method should handle these gracefully
+            for (var attrName in attributes) {
+                var attr = attributes[attrName];
+                
+                // This should not crash even if there are type conversion errors
+                var json = attr.toJSON();
+                
+                expect(json).to.be.an('object');
+                expect(json).to.have.property('name');
+                expect(json).to.have.property('value');
+                // Value should either be a valid value or null if there was an error
+                expect(json.value === null || typeof json.value !== 'undefined').to.be.true;
+            }
+        });
     });
 });

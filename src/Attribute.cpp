@@ -348,14 +348,21 @@ void Attribute::ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
         .Check();
     
     // Add value - get from the object's value property
+    // Use a TryCatch to handle errors when getting the value
+    v8::TryCatch try_catch(isolate);
     v8::Local<v8::String> valueProp = v8::String::NewFromUtf8(isolate, "value", v8::NewStringType::kNormal).ToLocalChecked();
     v8::MaybeLocal<v8::Value> maybeValue = args.Holder()->Get(context, valueProp);
     v8::Local<v8::Value> value;
     
-    if (!maybeValue.ToLocal(&value))
+    if (!maybeValue.ToLocal(&value) || try_catch.HasCaught())
     {
-        // If getting the value failed, return early (exception already pending)
-        return;
+        // If getting the value failed or threw an exception, clear the exception
+        // and set value to null instead of crashing
+        if (try_catch.HasCaught())
+        {
+            try_catch.Reset();
+        }
+        value = v8::Null(isolate);
     }
     
     json->Set(context,
