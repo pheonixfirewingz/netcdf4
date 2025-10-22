@@ -4,7 +4,6 @@
 #include <iostream>
 #include <netcdf.h>
 
-
 namespace nodenetcdfjs
 {
 
@@ -21,9 +20,7 @@ Attribute::Attribute(const char *name_, int var_id_, int parent_id_) noexcept
     Wrap(obj);
     const int retval = nc_inq_atttype(parent_id, var_id_, name_, &type);
     if (retval != NC_NOERR)
-    {
         throw_netcdf_error(isolate, retval);
-    }
 }
 
 Attribute::Attribute(const char *name_, int var_id_, int parent_id_, int type_) noexcept
@@ -108,9 +105,7 @@ void Attribute::GetValue(v8::Local<v8::String> property, const v8::PropertyCallb
         std::vector<int8_t> v(len);
         retval = nc_get_att(obj->parent_id, obj->var_id, obj->name.c_str(), v.data());
         if (len == 1)
-        {
             info.GetReturnValue().Set(v8::Integer::New(isolate, v[0]));
-        }
         else
         {
             v8::Local<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(isolate, len * sizeof(int8_t));
@@ -123,9 +118,7 @@ void Attribute::GetValue(v8::Local<v8::String> property, const v8::PropertyCallb
         std::vector<int16_t> v(len);
         retval = nc_get_att(obj->parent_id, obj->var_id, obj->name.c_str(), v.data());
         if (len == 1)
-        {
             info.GetReturnValue().Set(v8::Integer::New(isolate, v[0]));
-        }
         else
         {
             v8::Local<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(isolate, len * sizeof(int16_t));
@@ -138,9 +131,7 @@ void Attribute::GetValue(v8::Local<v8::String> property, const v8::PropertyCallb
         std::vector<int32_t> v(len);
         retval = nc_get_att(obj->parent_id, obj->var_id, obj->name.c_str(), v.data());
         if (len == 1)
-        {
             info.GetReturnValue().Set(v8::Integer::New(isolate, v[0]));
-        }
         else
         {
             v8::Local<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(isolate, len * sizeof(int32_t));
@@ -153,9 +144,7 @@ void Attribute::GetValue(v8::Local<v8::String> property, const v8::PropertyCallb
         std::vector<float> v(len);
         retval = nc_get_att(obj->parent_id, obj->var_id, obj->name.c_str(), v.data());
         if (len == 1)
-        {
             info.GetReturnValue().Set(v8::Number::New(isolate, v[0]));
-        }
         else
         {
             v8::Local<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(isolate, len * sizeof(float));
@@ -168,9 +157,7 @@ void Attribute::GetValue(v8::Local<v8::String> property, const v8::PropertyCallb
         std::vector<double> v(len);
         retval = nc_get_att(obj->parent_id, obj->var_id, obj->name.c_str(), v.data());
         if (len == 1)
-        {
             info.GetReturnValue().Set(v8::Number::New(isolate, v[0]));
-        }
         else
         {
             v8::Local<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(isolate, len * sizeof(double));
@@ -183,9 +170,7 @@ void Attribute::GetValue(v8::Local<v8::String> property, const v8::PropertyCallb
         std::vector<uint8_t> v(len);
         retval = nc_get_att(obj->parent_id, obj->var_id, obj->name.c_str(), v.data());
         if (len == 1)
-        {
             info.GetReturnValue().Set(v8::Integer::New(isolate, v[0]));
-        }
         else
         {
             v8::Local<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(isolate, len * sizeof(uint8_t));
@@ -198,9 +183,7 @@ void Attribute::GetValue(v8::Local<v8::String> property, const v8::PropertyCallb
         std::vector<uint16_t> v(len);
         retval = nc_get_att(obj->parent_id, obj->var_id, obj->name.c_str(), v.data());
         if (len == 1)
-        {
             info.GetReturnValue().Set(v8::Integer::New(isolate, v[0]));
-        }
         else
         {
             v8::Local<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(isolate, len * sizeof(uint16_t));
@@ -213,9 +196,7 @@ void Attribute::GetValue(v8::Local<v8::String> property, const v8::PropertyCallb
         std::vector<uint32_t> v(len);
         retval = nc_get_att(obj->parent_id, obj->var_id, obj->name.c_str(), v.data());
         if (len == 1)
-        {
             info.GetReturnValue().Set(v8::Integer::NewFromUnsigned(isolate, v[0]));
-        }
         else
         {
             v8::Local<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(isolate, len * sizeof(uint32_t));
@@ -228,9 +209,7 @@ void Attribute::GetValue(v8::Local<v8::String> property, const v8::PropertyCallb
         std::vector<int64_t> v(len);
         retval = nc_get_att(obj->parent_id, obj->var_id, obj->name.c_str(), v.data());
         if (len == 1)
-        {
             info.GetReturnValue().Set(v8::Integer::New(isolate, static_cast<int32_t>(v[0])));
-        }
         else
         {
             v8::Local<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(isolate, len * sizeof(int64_t));
@@ -243,9 +222,7 @@ void Attribute::GetValue(v8::Local<v8::String> property, const v8::PropertyCallb
         std::vector<uint64_t> v(len);
         retval = nc_get_att(obj->parent_id, obj->var_id, obj->name.c_str(), v.data());
         if (len == 1)
-        {
             info.GetReturnValue().Set(v8::Integer::NewFromUnsigned(isolate, static_cast<uint32_t>(v[0])));
-        }
         else
         {
             v8::Local<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(isolate, len * sizeof(uint64_t));
@@ -264,9 +241,7 @@ void Attribute::GetValue(v8::Local<v8::String> property, const v8::PropertyCallb
     break;
     }
     if (retval != NC_NOERR)
-    {
         throw_netcdf_error(isolate, retval);
-    }
 }
 
 void Attribute::SetValue(v8::Local<v8::String> property, v8::Local<v8::Value> val,
@@ -311,9 +286,7 @@ void Attribute::set_value(const v8::Local<v8::Value> &val)
     }
 
     if (retval != NC_NOERR)
-    {
         throw_netcdf_error(isolate, retval);
-    }
 }
 
 void Attribute::Delete(const v8::FunctionCallbackInfo<v8::Value> &args)
@@ -321,9 +294,7 @@ void Attribute::Delete(const v8::FunctionCallbackInfo<v8::Value> &args)
     auto *obj = node::ObjectWrap::Unwrap<Attribute>(args.Holder());
     const int retval = nc_del_att(obj->parent_id, obj->var_id, obj->name.c_str());
     if (retval != NC_NOERR)
-    {
         throw_netcdf_error(args.GetIsolate(), retval);
-    }
 }
 
 void Attribute::Inspect(const v8::FunctionCallbackInfo<v8::Value> &args)
@@ -338,40 +309,32 @@ void Attribute::ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
     v8::Isolate *isolate = args.GetIsolate();
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
     const auto *obj = node::ObjectWrap::Unwrap<Attribute>(args.Holder());
-    
-    // Use internalized strings for better performance
+
     v8::Local<v8::String> name_str = v8::String::NewFromUtf8Literal(isolate, "name");
     v8::Local<v8::String> value_str = v8::String::NewFromUtf8Literal(isolate, "value");
-    
+
     v8::Local<v8::Object> json = v8::Object::New(isolate);
-    
-    // Add name
-    (void)json->CreateDataProperty(context, name_str,
-              v8::String::NewFromUtf8(isolate, obj->name.c_str(), v8::NewStringType::kInternalized).ToLocalChecked());
-    
-    // Add value - get from the object's value property
-    // Use a TryCatch to handle errors when getting the value
+
+    (void)json->CreateDataProperty(
+        context, name_str,
+        v8::String::NewFromUtf8(isolate, obj->name.c_str(), v8::NewStringType::kInternalized).ToLocalChecked());
+
     v8::TryCatch try_catch(isolate);
     v8::MaybeLocal<v8::Value> maybeValue = args.Holder()->Get(context, value_str);
     v8::Local<v8::Value> value;
-    
+
     if (!maybeValue.ToLocal(&value) || try_catch.HasCaught())
     {
-        // If getting the value failed or threw an exception, clear the exception
-        // and set value to null instead of crashing
         if (try_catch.HasCaught())
-        {
             try_catch.Reset();
-        }
         value = v8::Null(isolate);
     }
     else if (value->IsTypedArray())
     {
-        // Convert TypedArray to regular array for JSON serialization
         v8::Local<v8::TypedArray> typedArray = v8::Local<v8::TypedArray>::Cast(value);
         uint32_t length = typedArray->Length();
         v8::Local<v8::Array> array = v8::Array::New(isolate, length);
-        
+
         for (uint32_t i = 0; i < length; i++)
         {
             v8::Local<v8::Value> element = typedArray->Get(context, i).ToLocalChecked();
@@ -379,10 +342,9 @@ void Attribute::ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
         }
         value = array;
     }
-    // Don't wrap primitives - only convert TypedArrays to arrays
-    
+
     (void)json->CreateDataProperty(context, value_str, value);
-    
+
     args.GetReturnValue().Set(json);
 }
 } // namespace nodenetcdfjs

@@ -5,7 +5,6 @@
 #include <netcdf.h>
 #include <string>
 
-
 namespace nodenetcdfjs
 {
 
@@ -21,11 +20,8 @@ File::~File()
 {
     if (!closed)
     {
-        int retval = nc_close(id);
-        if (retval != NC_NOERR)
-        {
+        if (const int retval = nc_close(id); retval != NC_NOERR)
             throw_netcdf_error(v8::Isolate::GetCurrent(), retval);
-        }
     }
 }
 
@@ -73,21 +69,13 @@ void File::New(const v8::FunctionCallbackInfo<v8::Value> &args)
                 *v8::String::Utf8Value(isolate, args[2]->ToString(isolate->GetCurrentContext()).ToLocalChecked());
 
             if (format_arg == "classic")
-            {
                 format = 0;
-            }
             else if (format_arg == "classic64")
-            {
                 format = NC_64BIT_OFFSET;
-            }
             else if (format_arg == "nodenetcdf")
-            {
                 format = NC_NETCDF4;
-            }
             else if (format_arg == "nodenetcdfclassic")
-            {
                 format = NC_NETCDF4 | NC_CLASSIC_MODEL;
-            }
             else
             {
                 isolate->ThrowException(v8::Exception::TypeError(
@@ -99,21 +87,13 @@ void File::New(const v8::FunctionCallbackInfo<v8::Value> &args)
 
         int retval = NC_NOERR;
         if (mode_arg == "r")
-        {
             retval = nc_open(filename.c_str(), NC_NOWRITE, &id);
-        }
         else if (mode_arg == "w")
-        {
             retval = nc_open(filename.c_str(), NC_WRITE, &id);
-        }
         else if (mode_arg == "c")
-        {
             retval = nc_create(filename.c_str(), format | NC_NOCLOBBER, &id);
-        }
         else if (mode_arg == "c!")
-        {
             retval = nc_create(filename.c_str(), format | NC_CLOBBER, &id);
-        }
         else
         {
             isolate->ThrowException(v8::Exception::TypeError(
@@ -146,9 +126,7 @@ void File::Sync(const v8::FunctionCallbackInfo<v8::Value> &args)
     File *obj = node::ObjectWrap::Unwrap<File>(args.Holder());
     int retval = nc_sync(obj->id);
     if (retval != NC_NOERR)
-    {
         throw_netcdf_error(args.GetIsolate(), retval);
-    }
 }
 
 void File::Close(const v8::FunctionCallbackInfo<v8::Value> &args)
@@ -156,9 +134,7 @@ void File::Close(const v8::FunctionCallbackInfo<v8::Value> &args)
     File *obj = node::ObjectWrap::Unwrap<File>(args.Holder());
     int retval = nc_close(obj->id);
     if (retval != NC_NOERR)
-    {
         throw_netcdf_error(args.GetIsolate(), retval);
-    }
     obj->closed = true;
 }
 
@@ -173,18 +149,18 @@ void File::ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
     v8::Isolate *isolate = args.GetIsolate();
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
-    
-    // Get the root group
-    v8::Local<v8::String> rootProp = v8::String::NewFromUtf8(isolate, "root", v8::NewStringType::kNormal).ToLocalChecked();
+
+    v8::Local<v8::String> rootProp =
+        v8::String::NewFromUtf8(isolate, "root", v8::NewStringType::kNormal).ToLocalChecked();
     v8::Local<v8::Value> root = args.Holder()->Get(context, rootProp).ToLocalChecked();
-    
-    // Call toJSON on the root group to get proper array conversion
+
     if (root->IsObject())
     {
         v8::Local<v8::Object> rootObj = root->ToObject(context).ToLocalChecked();
-        v8::Local<v8::String> toJSONProp = v8::String::NewFromUtf8(isolate, "toJSON", v8::NewStringType::kNormal).ToLocalChecked();
+        v8::Local<v8::String> toJSONProp =
+            v8::String::NewFromUtf8(isolate, "toJSON", v8::NewStringType::kNormal).ToLocalChecked();
         v8::Local<v8::Value> toJSONMethod = rootObj->Get(context, toJSONProp).ToLocalChecked();
-        
+
         if (toJSONMethod->IsFunction())
         {
             v8::Local<v8::Function> toJSONFunc = v8::Local<v8::Function>::Cast(toJSONMethod);
@@ -193,8 +169,7 @@ void File::ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
             return;
         }
     }
-    
-    // Fallback: return root as-is
+
     args.GetReturnValue().Set(root);
 }
 } // namespace nodenetcdfjs

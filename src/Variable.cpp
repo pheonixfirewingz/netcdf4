@@ -22,9 +22,7 @@ Variable::Variable(int id_, int parent_id_) noexcept
     Wrap(obj);
     const int retval = nc_inq_var(parent_id, id, nullptr, &type, &ndims, nullptr, nullptr);
     if (retval != NC_NOERR)
-    {
         throw_netcdf_error(isolate, retval);
-    }
 }
 
 void Variable::Init(v8::Local<v8::Object> exports)
@@ -169,9 +167,7 @@ void Variable::Write(const v8::FunctionCallbackInfo<v8::Value> &args)
     }
 
     if (retval != NC_NOERR)
-    {
         throw_netcdf_error(isolate, retval);
-    }
 }
 
 void Variable::WriteSlice(const v8::FunctionCallbackInfo<v8::Value> &args)
@@ -352,9 +348,7 @@ void Variable::WriteStridedSlice(const v8::FunctionCallbackInfo<v8::Value> &args
     }
     int retval = nc_put_vars(obj->parent_id, obj->id, pos, size, stride, val->Buffer()->GetBackingStore()->Data());
     if (retval != NC_NOERR)
-    {
         throw_netcdf_error(isolate, retval);
-    }
     delete[] pos;
     delete[] size;
     delete[] stride;
@@ -446,13 +440,9 @@ void Variable::Read(const v8::FunctionCallbackInfo<v8::Value> &args)
     break;
     }
     if (retval != NC_NOERR)
-    {
         throw_netcdf_error(isolate, retval);
-    }
     else
-    {
         args.GetReturnValue().Set(result);
-    }
     delete[] pos;
     delete[] size;
 }
@@ -727,9 +717,7 @@ void Variable::GetName(v8::Local<v8::String> property, const v8::PropertyCallbac
     Variable *obj = node::ObjectWrap::Unwrap<Variable>(info.Holder());
     char name[NC_MAX_NAME + 1];
     if (obj->get_name(name))
-    {
         info.GetReturnValue().Set(v8::String::NewFromUtf8(isolate, name, v8::NewStringType::kNormal).ToLocalChecked());
-    }
 }
 
 void Variable::SetName(v8::Local<v8::String> property, v8::Local<v8::Value> val,
@@ -792,17 +780,11 @@ void Variable::SetEndianness(v8::Local<v8::String> property, v8::Local<v8::Value
         val->ToString(isolate->GetCurrentContext()).ToLocalChecked());
     int v;
     if (arg == "little")
-    {
         v = NC_ENDIAN_LITTLE;
-    }
     else if (arg == "big")
-    {
         v = NC_ENDIAN_BIG;
-    }
     else if (arg == "native")
-    {
         v = NC_ENDIAN_NATIVE;
-    }
     else
     {
         isolate->ThrowException(v8::Exception::TypeError(
@@ -856,13 +838,9 @@ void Variable::SetChecksumMode(v8::Local<v8::String> property, v8::Local<v8::Val
         val->ToString(isolate->GetCurrentContext()).ToLocalChecked());
     int v;
     if (arg == "none")
-    {
         v = NC_NOCHECKSUM;
-    }
     else if (arg == "fletcher32")
-    {
         v = NC_FLETCHER32;
-    }
     else
     {
         isolate->ThrowException(v8::Exception::TypeError(
@@ -916,13 +894,9 @@ void Variable::SetChunkMode(v8::Local<v8::String> property, v8::Local<v8::Value>
         val->ToString(isolate->GetCurrentContext()).ToLocalChecked());
     int v;
     if (arg == "contiguous")
-    {
         v = NC_CONTIGUOUS;
-    }
     else if (arg == "chunked")
-    {
         v = NC_CHUNKED;
-    }
     else
     {
         isolate->ThrowException(v8::Exception::TypeError(
@@ -946,9 +920,7 @@ void Variable::SetChunkMode(v8::Local<v8::String> property, v8::Local<v8::Value>
     }
     retval = nc_def_var_chunking(obj->parent_id, obj->id, v, sizes);
     if (retval != NC_NOERR)
-    {
         throw_netcdf_error(isolate, retval);
-    }
     delete[] sizes;
 }
 
@@ -966,9 +938,7 @@ void Variable::GetChunkSizes(v8::Local<v8::String> property, const v8::PropertyC
     }
     v8::Local<v8::Array> result = v8::Array::New(isolate);
     for (int i = 0; i < obj->ndims; i++)
-    {
         result->Set(isolate->GetCurrentContext(), i, v8::Integer::New(isolate, i));
-    }
     info.GetReturnValue().Set(result);
     delete[] sizes;
 }
@@ -1005,17 +975,13 @@ void Variable::SetChunkSizes(v8::Local<v8::String> property, v8::Local<v8::Value
     }
     size_t *sizes = new size_t[obj->ndims];
     for (int i = 0; i < obj->ndims; i++)
-    {
         sizes[i] = array->Get(isolate->GetCurrentContext(), i)
                        .ToLocalChecked()
                        ->Uint32Value(isolate->GetCurrentContext())
                        .ToChecked();
-    }
     retval = nc_def_var_chunking(obj->parent_id, obj->id, v, sizes);
     if (retval != NC_NOERR)
-    {
         throw_netcdf_error(isolate, retval);
-    }
     delete[] sizes;
 }
 
@@ -1066,9 +1032,7 @@ void Variable::SetFillMode(v8::Local<v8::String> property, v8::Local<v8::Value> 
     }
     retval = nc_def_var_fill(obj->parent_id, obj->id, v, value);
     if (retval != NC_NOERR)
-    {
         throw_netcdf_error(isolate, retval);
-    }
     delete[] value;
 }
 
@@ -1211,9 +1175,7 @@ void Variable::SetFillValue(v8::Local<v8::String> property, v8::Local<v8::Value>
         return;
     }
     if (retval != NC_NOERR)
-    {
         throw_netcdf_error(isolate, retval);
-    }
 }
 
 void Variable::GetCompressionShuffle(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &info)
@@ -1299,9 +1261,7 @@ void Variable::SetCompressionDeflate(v8::Local<v8::String> property, v8::Local<v
     }
     retval = nc_def_var_deflate(obj->parent_id, obj->id, v1, v, v2);
     if (retval != NC_NOERR)
-    {
         throw_netcdf_error(isolate, retval);
-    }
 }
 
 void Variable::GetCompressionLevel(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &info)
@@ -1358,7 +1318,6 @@ void Variable::ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
     const auto *obj = node::ObjectWrap::Unwrap<Variable>(args.Holder());
     
-    // Use internalized strings for better performance
     v8::Local<v8::String> id_str = v8::String::NewFromUtf8Literal(isolate, "id");
     v8::Local<v8::String> name_str = v8::String::NewFromUtf8Literal(isolate, "name");
     v8::Local<v8::String> type_str = v8::String::NewFromUtf8Literal(isolate, "type");
@@ -1367,23 +1326,18 @@ void Variable::ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
     
     v8::Local<v8::Object> json = v8::Object::New(isolate);
     
-    // Add id
     (void)json->CreateDataProperty(context, id_str, v8::Integer::New(isolate, obj->id));
     
-    // Add name
     char name[NC_MAX_NAME + 1];
     if (obj->get_name(name))
-    {
         (void)json->CreateDataProperty(context, name_str,
                   v8::String::NewFromUtf8(isolate, name, v8::NewStringType::kInternalized).ToLocalChecked());
-    }
     
     // Add type
     const char *type_name = (obj->type < NC_BYTE || obj->type > NC_UINT) ? "unknown" : type_names[obj->type];
     (void)json->CreateDataProperty(context, type_str,
               v8::String::NewFromUtf8(isolate, type_name, v8::NewStringType::kInternalized).ToLocalChecked());
     
-    // Dimensions are already an array, but call toJSON on each item
     v8::Local<v8::Value> dimensions = args.Holder()->Get(context, dimensions_str).ToLocalChecked();
     if (dimensions->IsArray())
     {

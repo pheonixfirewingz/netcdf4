@@ -2,7 +2,6 @@
 #include "nodenetcdfjs.h"
 #include <netcdf.h>
 
-
 namespace nodenetcdfjs
 {
 
@@ -92,9 +91,7 @@ void Dimension::SetName(v8::Local<v8::String> property, v8::Local<v8::Value> val
     const int retval = nc_rename_dim(obj->parent_id, obj->id, *new_name_);
 
     if (retval != NC_NOERR)
-    {
         throw_netcdf_error(isolate, retval);
-    }
 }
 
 void Dimension::Inspect(const v8::FunctionCallbackInfo<v8::Value> &args)
@@ -109,33 +106,26 @@ void Dimension::ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
     v8::Isolate *isolate = args.GetIsolate();
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
     const auto *obj = node::ObjectWrap::Unwrap<Dimension>(args.Holder());
-    
-    // Use internalized strings for better performance
+
     v8::Local<v8::String> id_str = v8::String::NewFromUtf8Literal(isolate, "id");
     v8::Local<v8::String> name_str = v8::String::NewFromUtf8Literal(isolate, "name");
     v8::Local<v8::String> length_str = v8::String::NewFromUtf8Literal(isolate, "length");
-    
+
     v8::Local<v8::Object> json = v8::Object::New(isolate);
-    
-    // Add id
+
     (void)json->CreateDataProperty(context, id_str, v8::Integer::New(isolate, obj->id));
-    
-    // Add name
+
     std::array<char, NC_MAX_NAME + 1> name{};
     if (obj->get_name(name.data()))
-    {
-        (void)json->CreateDataProperty(context, name_str,
-                  v8::String::NewFromUtf8(isolate, name.data(), v8::NewStringType::kInternalized).ToLocalChecked());
-    }
-    
-    // Add length
+        (void)json->CreateDataProperty(
+            context, name_str,
+            v8::String::NewFromUtf8(isolate, name.data(), v8::NewStringType::kInternalized).ToLocalChecked());
+
     size_t len = 0;
     const int retval = nc_inq_dimlen(obj->parent_id, obj->id, &len);
     if (retval == NC_NOERR)
-    {
         (void)json->CreateDataProperty(context, length_str, v8::Integer::New(isolate, static_cast<int32_t>(len)));
-    }
-    
+
     args.GetReturnValue().Set(json);
 }
 } // namespace nodenetcdfjs

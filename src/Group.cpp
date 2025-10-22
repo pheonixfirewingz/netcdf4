@@ -5,7 +5,6 @@
 #include "nodenetcdfjs.h"
 #include <netcdf.h>
 
-
 namespace nodenetcdfjs
 {
 
@@ -136,9 +135,7 @@ void Group::AddDimension(const v8::FunctionCallbackInfo<v8::Value> &args)
 
     int len;
     if (const std::string len_str = *v8::String::Utf8Value(isolate, args[1]); len_str == "unlimited")
-    {
         len = NC_UNLIMITED;
-    }
     else
     {
         if (!args[1]->IsUint32())
@@ -152,9 +149,8 @@ void Group::AddDimension(const v8::FunctionCallbackInfo<v8::Value> &args)
     }
 
     int new_id = -1;
-    const int retval = nc_def_dim(obj->id, *v8::String::Utf8Value(isolate, args[0]), len, &new_id);
-
-    if (retval != NC_NOERR)
+    if (const int retval = nc_def_dim(obj->id, *v8::String::Utf8Value(isolate, args[0]), len, &new_id);
+        retval != NC_NOERR)
     {
         throw_netcdf_error(isolate, retval);
         return;
@@ -271,15 +267,12 @@ void Group::GetVariables(v8::Local<v8::String> property, const v8::PropertyCallb
     {
         auto *v = new Variable(var_ids[i], obj->id);
         if (v->get_name(name.data()))
-        {
-            (void)result->CreateDataProperty(context,
-                        v8::String::NewFromUtf8(isolate, name.data(), v8::NewStringType::kInternalized).ToLocalChecked(),
-                        v->handle());
-        }
+            (void)result->CreateDataProperty(
+                context,
+                v8::String::NewFromUtf8(isolate, name.data(), v8::NewStringType::kInternalized).ToLocalChecked(),
+                v->handle());
         else
-        {
             return;
-        }
     }
     info.GetReturnValue().Set(result);
 }
@@ -314,7 +307,8 @@ void Group::GetDimensions(v8::Local<v8::String> property, const v8::PropertyCall
         auto *d = new Dimension(dim_ids[i], obj->id);
         if (d->get_name(name.data()))
         {
-            (void)result->CreateDataProperty(context,
+            (void)result->CreateDataProperty(
+                context,
                 v8::String::NewFromUtf8(isolate, name.data(), v8::NewStringType::kInternalized).ToLocalChecked(),
                 d->handle());
         }
@@ -354,11 +348,13 @@ void Group::GetUnlimited(v8::Local<v8::String> property, const v8::PropertyCallb
         auto *d = new Dimension(dim_ids[i], obj->id);
         if (d->get_name(name.data()))
         {
-             (void)result->CreateDataProperty(context,
-                        v8::String::NewFromUtf8(isolate, name.data(), v8::NewStringType::kInternalized).ToLocalChecked(),
-                        d->handle());
+            (void)result->CreateDataProperty(
+                context,
+                v8::String::NewFromUtf8(isolate, name.data(), v8::NewStringType::kInternalized).ToLocalChecked(),
+                d->handle());
         }
-        else return;
+        else
+            return;
     }
     info.GetReturnValue().Set(result);
 }
@@ -389,9 +385,9 @@ void Group::GetAttributes(v8::Local<v8::String> property, const v8::PropertyCall
             return;
         }
         auto *a = new Attribute(name.data(), NC_GLOBAL, obj->id);
-        (void)result->CreateDataProperty(context,
-                    v8::String::NewFromUtf8(isolate, name.data(), v8::NewStringType::kInternalized).ToLocalChecked(),
-                    a->handle());
+        (void)result->CreateDataProperty(
+            context, v8::String::NewFromUtf8(isolate, name.data(), v8::NewStringType::kInternalized).ToLocalChecked(),
+            a->handle());
     }
     info.GetReturnValue().Set(result);
 }
@@ -426,14 +422,13 @@ void Group::GetSubgroups(v8::Local<v8::String> property, const v8::PropertyCallb
         auto *g = new Group(grp_ids[i]);
         if (g->get_name(name.data()))
         {
-             (void)result->CreateDataProperty(context,
-                        v8::String::NewFromUtf8(isolate, name.data(), v8::NewStringType::kInternalized).ToLocalChecked(),
-                        g->handle());
+            (void)result->CreateDataProperty(
+                context,
+                v8::String::NewFromUtf8(isolate, name.data(), v8::NewStringType::kInternalized).ToLocalChecked(),
+                g->handle());
         }
         else
-        {
             return;
-        }
     }
     info.GetReturnValue().Set(result);
 }
@@ -488,8 +483,7 @@ void Group::ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
     v8::Isolate *isolate = args.GetIsolate();
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
     const auto *obj = node::ObjectWrap::Unwrap<Group>(args.Holder());
-    
-    // Use internalized strings for better performance
+
     v8::Local<v8::String> id_str = v8::String::NewFromUtf8Literal(isolate, "id");
     v8::Local<v8::String> name_str = v8::String::NewFromUtf8Literal(isolate, "name");
     v8::Local<v8::String> fullname_str = v8::String::NewFromUtf8Literal(isolate, "fullname");
@@ -497,21 +491,17 @@ void Group::ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
     v8::Local<v8::String> variables_str = v8::String::NewFromUtf8Literal(isolate, "variables");
     v8::Local<v8::String> attributes_str = v8::String::NewFromUtf8Literal(isolate, "attributes");
     v8::Local<v8::String> subgroups_str = v8::String::NewFromUtf8Literal(isolate, "subgroups");
-    
+
     v8::Local<v8::Object> json = v8::Object::New(isolate);
-    
-    // Add id
+
     (void)json->CreateDataProperty(context, id_str, v8::Integer::New(isolate, obj->id));
-    
-    // Add name
+
     std::array<char, NC_MAX_NAME + 1> name{};
     if (obj->get_name(name.data()))
-    {
-        (void)json->CreateDataProperty(context, name_str,
-                  v8::String::NewFromUtf8(isolate, name.data(), v8::NewStringType::kInternalized).ToLocalChecked());
-    }
-    
-    // Add fullname
+        (void)json->CreateDataProperty(
+            context, name_str,
+            v8::String::NewFromUtf8(isolate, name.data(), v8::NewStringType::kInternalized).ToLocalChecked());
+
     size_t len = 0;
     int retval = nc_inq_grpname_len(obj->id, &len);
     if (retval == NC_NOERR)
@@ -519,13 +509,11 @@ void Group::ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
         std::vector<char> fullname(len + 1, '\0');
         retval = nc_inq_grpname_full(obj->id, nullptr, fullname.data());
         if (retval == NC_NOERR)
-        {
-            (void)json->CreateDataProperty(context, fullname_str,
-                      v8::String::NewFromUtf8(isolate, fullname.data(), v8::NewStringType::kInternalized).ToLocalChecked());
-        }
+            (void)json->CreateDataProperty(
+                context, fullname_str,
+                v8::String::NewFromUtf8(isolate, fullname.data(), v8::NewStringType::kInternalized).ToLocalChecked());
     }
-    
-    // Convert dimensions object to array, calling toJSON on each item
+
     v8::Local<v8::Value> dimensions = args.Holder()->Get(context, dimensions_str).ToLocalChecked();
     if (dimensions->IsObject() && !dimensions->IsNull())
     {
@@ -533,13 +521,12 @@ void Group::ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
         v8::Local<v8::Array> propNames = dimsObj->GetOwnPropertyNames(context).ToLocalChecked();
         v8::Local<v8::Array> dimsArray = v8::Array::New(isolate, propNames->Length());
         v8::Local<v8::String> toJSONStr = v8::String::NewFromUtf8Literal(isolate, "toJSON");
-        
+
         for (uint32_t i = 0; i < propNames->Length(); i++)
         {
             v8::Local<v8::Value> key = propNames->Get(context, i).ToLocalChecked();
             v8::Local<v8::Value> value = dimsObj->Get(context, key).ToLocalChecked();
-            
-            // Call toJSON if available to ensure proper serialization
+
             if (value->IsObject())
             {
                 v8::Local<v8::Object> valueObj = value->ToObject(context).ToLocalChecked();
@@ -554,8 +541,7 @@ void Group::ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
         }
         (void)json->CreateDataProperty(context, dimensions_str, dimsArray);
     }
-    
-    // Convert variables object to array, calling toJSON on each item
+
     v8::Local<v8::Value> variables = args.Holder()->Get(context, variables_str).ToLocalChecked();
     if (variables->IsObject() && !variables->IsNull())
     {
@@ -563,13 +549,12 @@ void Group::ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
         v8::Local<v8::Array> propNames = varsObj->GetOwnPropertyNames(context).ToLocalChecked();
         v8::Local<v8::Array> varsArray = v8::Array::New(isolate, propNames->Length());
         v8::Local<v8::String> toJSONStr = v8::String::NewFromUtf8Literal(isolate, "toJSON");
-        
+
         for (uint32_t i = 0; i < propNames->Length(); i++)
         {
             v8::Local<v8::Value> key = propNames->Get(context, i).ToLocalChecked();
             v8::Local<v8::Value> value = varsObj->Get(context, key).ToLocalChecked();
-            
-            // Call toJSON if available to ensure proper serialization
+
             if (value->IsObject())
             {
                 v8::Local<v8::Object> valueObj = value->ToObject(context).ToLocalChecked();
@@ -584,8 +569,7 @@ void Group::ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
         }
         (void)json->CreateDataProperty(context, variables_str, varsArray);
     }
-    
-    // Convert attributes object to array, calling toJSON on each item
+
     v8::Local<v8::Value> attributes = args.Holder()->Get(context, attributes_str).ToLocalChecked();
     if (attributes->IsObject() && !attributes->IsNull())
     {
@@ -593,13 +577,12 @@ void Group::ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
         v8::Local<v8::Array> propNames = attrsObj->GetOwnPropertyNames(context).ToLocalChecked();
         v8::Local<v8::Array> attrsArray = v8::Array::New(isolate, propNames->Length());
         v8::Local<v8::String> toJSONStr = v8::String::NewFromUtf8Literal(isolate, "toJSON");
-        
+
         for (uint32_t i = 0; i < propNames->Length(); i++)
         {
             v8::Local<v8::Value> key = propNames->Get(context, i).ToLocalChecked();
             v8::Local<v8::Value> value = attrsObj->Get(context, key).ToLocalChecked();
-            
-            // Call toJSON if available to ensure proper serialization
+
             if (value->IsObject())
             {
                 v8::Local<v8::Object> valueObj = value->ToObject(context).ToLocalChecked();
@@ -614,8 +597,7 @@ void Group::ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
         }
         (void)json->CreateDataProperty(context, attributes_str, attrsArray);
     }
-    
-    // Convert subgroups object to array, calling toJSON on each item
+
     v8::Local<v8::Value> subgroups = args.Holder()->Get(context, subgroups_str).ToLocalChecked();
     if (subgroups->IsObject() && !subgroups->IsNull())
     {
@@ -623,13 +605,12 @@ void Group::ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
         v8::Local<v8::Array> propNames = subgrpsObj->GetOwnPropertyNames(context).ToLocalChecked();
         v8::Local<v8::Array> subgrpsArray = v8::Array::New(isolate, propNames->Length());
         v8::Local<v8::String> toJSONStr = v8::String::NewFromUtf8Literal(isolate, "toJSON");
-        
+
         for (uint32_t i = 0; i < propNames->Length(); i++)
         {
             v8::Local<v8::Value> key = propNames->Get(context, i).ToLocalChecked();
             v8::Local<v8::Value> value = subgrpsObj->Get(context, key).ToLocalChecked();
-            
-            // Call toJSON if available to ensure proper serialization
+
             if (value->IsObject())
             {
                 v8::Local<v8::Object> valueObj = value->ToObject(context).ToLocalChecked();
@@ -644,7 +625,7 @@ void Group::ToJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
         }
         (void)json->CreateDataProperty(context, subgroups_str, subgrpsArray);
     }
-    
+
     args.GetReturnValue().Set(json);
 }
 } // namespace nodenetcdfjs
