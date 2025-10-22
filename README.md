@@ -2,7 +2,7 @@
 
 A Node.js native addon for reading and writing NodeNetCDF files, providing a comprehensive interface to the NetCDF-4 C library.
 
-IMPORTANT NOTE: this project dose not follow conventional open source standards we will accept PR's but we will not be actively changeing code unless something breaks
+IMPORTANT NOTE: this project does not follow conventional open source standards we will accept PR's but we will not be actively changeing code unless something breaks
 
 ## Overview
 
@@ -294,7 +294,7 @@ The build process uses:
 
 ## Original Project and License
 
-This is a fork and modernization of the original [nodenetcdf](https://github.com/parro-it/nodenetcdf) project.
+This is a fork and modernization of the original [netcdf4](https://github.com/parro-it/netcdf4) project.
 
 ### Original Contributors
 
@@ -322,6 +322,27 @@ ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
 WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+MIT License
+
+Copyright (c) Luke Shore <luke.a.shore@oliva.energy>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this
+software and associated documentation files (the "Software"), to deal in the Software
+without restriction, including without limitation the rights to use, copy, modify,
+merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be included in all copies
+or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
+OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ## Links
 
