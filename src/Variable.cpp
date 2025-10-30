@@ -102,8 +102,14 @@ void Variable::Write(const v8::FunctionCallbackInfo<v8::Value> &args)
 
     if (args.Length() != obj->ndims + 1)
     {
+        char name[NC_MAX_NAME + 1];
+        obj->get_name(name);
+        char error_msg[512];
+        snprintf(error_msg, sizeof(error_msg), 
+                "Variable.write() for '%s': Wrong number of arguments. Expected %d (position arguments) + 1 (value) = %d, but got %d",
+                name, obj->ndims, obj->ndims + 1, args.Length());
         isolate->ThrowException(v8::Exception::TypeError(
-            v8::String::NewFromUtf8(isolate, "Wrong number of arguments", v8::NewStringType::kNormal)
+            v8::String::NewFromUtf8(isolate, error_msg, v8::NewStringType::kNormal)
                 .ToLocalChecked()));
         return;
     }
@@ -160,8 +166,14 @@ void Variable::Write(const v8::FunctionCallbackInfo<v8::Value> &args)
     }
     break;
     default:
+        char name[NC_MAX_NAME + 1];
+        obj->get_name(name);
+        char error_msg[256];
+        snprintf(error_msg, sizeof(error_msg),
+                "Variable.write() for '%s': Variable type %d not supported for write operations",
+                name, obj->type);
         isolate->ThrowException(v8::Exception::TypeError(
-            v8::String::NewFromUtf8(isolate, "Variable type not supported yet", v8::NewStringType::kNormal)
+            v8::String::NewFromUtf8(isolate, error_msg, v8::NewStringType::kNormal)
                 .ToLocalChecked()));
         return;
     }
@@ -174,17 +186,28 @@ void Variable::WriteSlice(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
     v8::Isolate *isolate = args.GetIsolate();
     Variable *obj = node::ObjectWrap::Unwrap<Variable>(args.Holder());
+    char name[NC_MAX_NAME + 1];
+    obj->get_name(name);
+    
     if (args.Length() != 2 * obj->ndims + 1)
     {
+        char error_msg[512];
+        snprintf(error_msg, sizeof(error_msg),
+                "Variable.writeSlice() for '%s': Wrong number of arguments. Expected %d pairs (pos,size) + 1 (array) = %d, but got %d",
+                name, obj->ndims, 2 * obj->ndims + 1, args.Length());
         isolate->ThrowException(v8::Exception::TypeError(
-            v8::String::NewFromUtf8(isolate, "Wrong number of arguments", v8::NewStringType::kNormal)
+            v8::String::NewFromUtf8(isolate, error_msg, v8::NewStringType::kNormal)
                 .ToLocalChecked()));
         return;
     }
     if (!args[2 * obj->ndims]->IsTypedArray())
     {
+        char error_msg[256];
+        snprintf(error_msg, sizeof(error_msg),
+                "Variable.writeSlice() for '%s': Last argument must be a typed array (Int8Array, Float32Array, etc.), but got %s",
+                name, *v8::String::Utf8Value(isolate, args[2 * obj->ndims]->TypeOf(isolate)));
         isolate->ThrowException(v8::Exception::TypeError(
-            v8::String::NewFromUtf8(isolate, "Expecting a typed array", v8::NewStringType::kNormal).ToLocalChecked()));
+            v8::String::NewFromUtf8(isolate, error_msg, v8::NewStringType::kNormal).ToLocalChecked()));
         return;
     }
     size_t *pos = new size_t[obj->ndims];
@@ -200,44 +223,61 @@ void Variable::WriteSlice(const v8::FunctionCallbackInfo<v8::Value> &args)
     v8::Local<v8::TypedArray> val = v8::Local<v8::TypedArray>::Cast(args[2 * obj->ndims]);
     if (val->Length() != total_size)
     {
+        char error_msg[512];
+        snprintf(error_msg, sizeof(error_msg),
+                "Variable.writeSlice() for '%s': Array size mismatch. Expected %zu elements (product of sizes), but got %zu",
+                name, total_size, val->Length());
         isolate->ThrowException(v8::Exception::TypeError(
-            v8::String::NewFromUtf8(isolate, "Wrong size of array", v8::NewStringType::kNormal).ToLocalChecked()));
+            v8::String::NewFromUtf8(isolate, error_msg, v8::NewStringType::kNormal).ToLocalChecked()));
         delete[] pos;
         delete[] size;
         return;
     }
 
     bool correct_type;
+    const char *expected_type_name = nullptr;
     switch (obj->type)
     {
     case NC_BYTE:
     case NC_CHAR:
         correct_type = val->IsInt8Array();
+        expected_type_name = "Int8Array";
         break;
     case NC_SHORT:
         correct_type = val->IsInt16Array();
+        expected_type_name = "Int16Array";
         break;
     case NC_INT:
         correct_type = val->IsInt32Array();
+        expected_type_name = "Int32Array";
         break;
     case NC_FLOAT:
         correct_type = val->IsFloat32Array();
+        expected_type_name = "Float32Array";
         break;
     case NC_DOUBLE:
         correct_type = val->IsFloat64Array();
+        expected_type_name = "Float64Array";
         break;
     case NC_UBYTE:
         correct_type = val->IsUint8Array();
+        expected_type_name = "Uint8Array";
         break;
     case NC_USHORT:
         correct_type = val->IsUint16Array();
+        expected_type_name = "Uint16Array";
         break;
     case NC_UINT:
         correct_type = val->IsUint32Array();
+        expected_type_name = "Uint32Array";
         break;
     default:
+        char error_msg[256];
+        snprintf(error_msg, sizeof(error_msg),
+                "Variable.writeSlice() for '%s': Variable type %d (%s) not supported for write operations",
+                name, obj->type, type_names[obj->type]);
         isolate->ThrowException(v8::Exception::TypeError(
-            v8::String::NewFromUtf8(isolate, "Variable type not supported yet", v8::NewStringType::kNormal)
+            v8::String::NewFromUtf8(isolate, error_msg, v8::NewStringType::kNormal)
                 .ToLocalChecked()));
         delete[] pos;
         delete[] size;
@@ -245,8 +285,13 @@ void Variable::WriteSlice(const v8::FunctionCallbackInfo<v8::Value> &args)
     }
     if (!correct_type)
     {
+        v8::String::Utf8Value actual_type(isolate, val->GetConstructorName());
+        char error_msg[512];
+        snprintf(error_msg, sizeof(error_msg),
+                "Variable.writeSlice() for '%s': Array type mismatch. Variable type is %s, expected %s array, but got %s",
+                name, type_names[obj->type], expected_type_name, *actual_type);
         isolate->ThrowException(v8::Exception::TypeError(
-            v8::String::NewFromUtf8(isolate, "Wrong array type", v8::NewStringType::kNormal).ToLocalChecked()));
+            v8::String::NewFromUtf8(isolate, error_msg, v8::NewStringType::kNormal).ToLocalChecked()));
         delete[] pos;
         delete[] size;
         return;
@@ -264,17 +309,28 @@ void Variable::WriteStridedSlice(const v8::FunctionCallbackInfo<v8::Value> &args
 {
     v8::Isolate *isolate = args.GetIsolate();
     Variable *obj = node::ObjectWrap::Unwrap<Variable>(args.Holder());
+    char name[NC_MAX_NAME + 1];
+    obj->get_name(name);
+    
     if (args.Length() != 3 * obj->ndims + 1)
     {
+        char error_msg[512];
+        snprintf(error_msg, sizeof(error_msg),
+                "Variable.writeStridedSlice() for '%s': Wrong number of arguments. Expected %d triplets (pos,size,stride) + 1 (array) = %d, but got %d",
+                name, obj->ndims, 3 * obj->ndims + 1, args.Length());
         isolate->ThrowException(v8::Exception::TypeError(
-            v8::String::NewFromUtf8(isolate, "Wrong number of arguments", v8::NewStringType::kNormal)
+            v8::String::NewFromUtf8(isolate, error_msg, v8::NewStringType::kNormal)
                 .ToLocalChecked()));
         return;
     }
     if (!args[3 * obj->ndims]->IsTypedArray())
     {
+        char error_msg[256];
+        snprintf(error_msg, sizeof(error_msg),
+                "Variable.writeStridedSlice() for '%s': Last argument must be a typed array, but got %s",
+                name, *v8::String::Utf8Value(isolate, args[3 * obj->ndims]->TypeOf(isolate)));
         isolate->ThrowException(v8::Exception::TypeError(
-            v8::String::NewFromUtf8(isolate, "Expecting a typed array", v8::NewStringType::kNormal).ToLocalChecked()));
+            v8::String::NewFromUtf8(isolate, error_msg, v8::NewStringType::kNormal).ToLocalChecked()));
         return;
     }
     size_t *pos = new size_t[obj->ndims];
@@ -292,8 +348,12 @@ void Variable::WriteStridedSlice(const v8::FunctionCallbackInfo<v8::Value> &args
     v8::Local<v8::TypedArray> val = v8::Local<v8::TypedArray>::Cast(args[3 * obj->ndims]);
     if (val->Length() != total_size)
     {
+        char error_msg[512];
+        snprintf(error_msg, sizeof(error_msg),
+                "Variable.writeStridedSlice() for '%s': Array size mismatch. Expected %zu elements (product of sizes), but got %zu",
+                name, total_size, val->Length());
         isolate->ThrowException(v8::Exception::TypeError(
-            v8::String::NewFromUtf8(isolate, "Wrong size of array", v8::NewStringType::kNormal).ToLocalChecked()));
+            v8::String::NewFromUtf8(isolate, error_msg, v8::NewStringType::kNormal).ToLocalChecked()));
         delete[] pos;
         delete[] size;
         delete[] stride;
@@ -301,36 +361,49 @@ void Variable::WriteStridedSlice(const v8::FunctionCallbackInfo<v8::Value> &args
     }
 
     bool correct_type;
+    const char *expected_type_name = nullptr;
     switch (obj->type)
     {
     case NC_BYTE:
     case NC_CHAR:
         correct_type = val->IsInt8Array();
+        expected_type_name = "Int8Array";
         break;
     case NC_SHORT:
         correct_type = val->IsInt16Array();
+        expected_type_name = "Int16Array";
         break;
     case NC_INT:
         correct_type = val->IsInt32Array();
+        expected_type_name = "Int32Array";
         break;
     case NC_FLOAT:
         correct_type = val->IsFloat32Array();
+        expected_type_name = "Float32Array";
         break;
     case NC_DOUBLE:
         correct_type = val->IsFloat64Array();
+        expected_type_name = "Float64Array";
         break;
     case NC_UBYTE:
         correct_type = val->IsUint8Array();
+        expected_type_name = "Uint8Array";
         break;
     case NC_USHORT:
         correct_type = val->IsUint16Array();
+        expected_type_name = "Uint16Array";
         break;
     case NC_UINT:
         correct_type = val->IsUint32Array();
+        expected_type_name = "Uint32Array";
         break;
     default:
+        char error_msg[256];
+        snprintf(error_msg, sizeof(error_msg),
+                "Variable.writeStridedSlice() for '%s': Variable type %d (%s) not supported for write operations",
+                name, obj->type, type_names[obj->type]);
         isolate->ThrowException(v8::Exception::TypeError(
-            v8::String::NewFromUtf8(isolate, "Variable type not supported yet", v8::NewStringType::kNormal)
+            v8::String::NewFromUtf8(isolate, error_msg, v8::NewStringType::kNormal)
                 .ToLocalChecked()));
         delete[] pos;
         delete[] size;
@@ -339,8 +412,13 @@ void Variable::WriteStridedSlice(const v8::FunctionCallbackInfo<v8::Value> &args
     }
     if (!correct_type)
     {
+        v8::String::Utf8Value actual_type(isolate, val->GetConstructorName());
+        char error_msg[512];
+        snprintf(error_msg, sizeof(error_msg),
+                "Variable.writeStridedSlice() for '%s': Array type mismatch. Variable type is %s, expected %s array, but got %s",
+                name, type_names[obj->type], expected_type_name, *actual_type);
         isolate->ThrowException(v8::Exception::TypeError(
-            v8::String::NewFromUtf8(isolate, "Wrong array type", v8::NewStringType::kNormal).ToLocalChecked()));
+            v8::String::NewFromUtf8(isolate, error_msg, v8::NewStringType::kNormal).ToLocalChecked()));
         delete[] pos;
         delete[] size;
         delete[] stride;
@@ -358,17 +436,28 @@ void Variable::Read(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
     v8::Isolate *isolate = args.GetIsolate();
     Variable *obj = node::ObjectWrap::Unwrap<Variable>(args.Holder());
+    char name[NC_MAX_NAME + 1];
+    obj->get_name(name);
+    
     if (args.Length() != obj->ndims)
     {
+        char error_msg[512];
+        snprintf(error_msg, sizeof(error_msg),
+                "Variable.read() for '%s': Wrong number of arguments. Expected %d position indices (one per dimension), but got %d",
+                name, obj->ndims, args.Length());
         isolate->ThrowException(v8::Exception::TypeError(
-            v8::String::NewFromUtf8(isolate, "Wrong number of arguments", v8::NewStringType::kNormal)
+            v8::String::NewFromUtf8(isolate, error_msg, v8::NewStringType::kNormal)
                 .ToLocalChecked()));
         return;
     }
     if (obj->type < NC_BYTE || obj->type > NC_UINT)
     {
+        char error_msg[256];
+        snprintf(error_msg, sizeof(error_msg),
+                "Variable.read() for '%s': Variable type %d not supported for read operations",
+                name, obj->type);
         isolate->ThrowException(v8::Exception::TypeError(
-            v8::String::NewFromUtf8(isolate, "Variable type not supported yet", v8::NewStringType::kNormal)
+            v8::String::NewFromUtf8(isolate, error_msg, v8::NewStringType::kNormal)
                 .ToLocalChecked()));
         return;
     }
@@ -451,17 +540,28 @@ void Variable::ReadSlice(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
     v8::Isolate *isolate = args.GetIsolate();
     Variable *obj = node::ObjectWrap::Unwrap<Variable>(args.Holder());
+    char name[NC_MAX_NAME + 1];
+    obj->get_name(name);
+    
     if (args.Length() != 2 * obj->ndims)
     {
+        char error_msg[512];
+        snprintf(error_msg, sizeof(error_msg),
+                "Variable.readSlice() for '%s': Wrong number of arguments. Expected %d pairs (pos,size) = %d arguments, but got %d",
+                name, obj->ndims, 2 * obj->ndims, args.Length());
         isolate->ThrowException(v8::Exception::TypeError(
-            v8::String::NewFromUtf8(isolate, "Wrong number of arguments", v8::NewStringType::kNormal)
+            v8::String::NewFromUtf8(isolate, error_msg, v8::NewStringType::kNormal)
                 .ToLocalChecked()));
         return;
     }
     if (obj->type < NC_BYTE || obj->type > NC_UINT)
     {
+        char error_msg[256];
+        snprintf(error_msg, sizeof(error_msg),
+                "Variable.readSlice() for '%s': Variable type %d not supported for read operations",
+                name, obj->type);
         isolate->ThrowException(v8::Exception::TypeError(
-            v8::String::NewFromUtf8(isolate, "Variable type not supported yet", v8::NewStringType::kNormal)
+            v8::String::NewFromUtf8(isolate, error_msg, v8::NewStringType::kNormal)
                 .ToLocalChecked()));
         return;
     }
@@ -515,8 +615,12 @@ void Variable::ReadSlice(const v8::FunctionCallbackInfo<v8::Value> &args)
         result = v8::Uint32Array::New(buffer, 0, total_size);
         break;
     default:
+        char error_msg[256];
+        snprintf(error_msg, sizeof(error_msg),
+                "Variable.readSlice() for '%s': Variable type %d (%s) not supported for creating typed array result",
+                name, obj->type, type_names[obj->type]);
         isolate->ThrowException(v8::Exception::TypeError(
-            v8::String::NewFromUtf8(isolate, "Variable type not supported yet", v8::NewStringType::kNormal)
+            v8::String::NewFromUtf8(isolate, error_msg, v8::NewStringType::kNormal)
                 .ToLocalChecked()));
         delete[] pos;
         delete[] size;
@@ -531,17 +635,28 @@ void Variable::ReadStridedSlice(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
     v8::Isolate *isolate = args.GetIsolate();
     Variable *obj = node::ObjectWrap::Unwrap<Variable>(args.Holder());
+    char name[NC_MAX_NAME + 1];
+    obj->get_name(name);
+    
     if (args.Length() != 3 * obj->ndims)
     {
+        char error_msg[512];
+        snprintf(error_msg, sizeof(error_msg),
+                "Variable.readStridedSlice() for '%s': Wrong number of arguments. Expected %d triplets (pos,size,stride) = %d arguments, but got %d",
+                name, obj->ndims, 3 * obj->ndims, args.Length());
         isolate->ThrowException(v8::Exception::TypeError(
-            v8::String::NewFromUtf8(isolate, "Wrong number of arguments", v8::NewStringType::kNormal)
+            v8::String::NewFromUtf8(isolate, error_msg, v8::NewStringType::kNormal)
                 .ToLocalChecked()));
         return;
     }
     if (obj->type < NC_BYTE || obj->type > NC_UINT)
     {
+        char error_msg[256];
+        snprintf(error_msg, sizeof(error_msg),
+                "Variable.readStridedSlice() for '%s': Variable type %d not supported for read operations",
+                name, obj->type);
         isolate->ThrowException(v8::Exception::TypeError(
-            v8::String::NewFromUtf8(isolate, "Variable type not supported yet", v8::NewStringType::kNormal)
+            v8::String::NewFromUtf8(isolate, error_msg, v8::NewStringType::kNormal)
                 .ToLocalChecked()));
         return;
     }
@@ -608,10 +723,17 @@ void Variable::AddAttribute(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
     v8::Isolate *isolate = args.GetIsolate();
     Variable *obj = node::ObjectWrap::Unwrap<Variable>(args.Holder());
+    char var_name[NC_MAX_NAME + 1];
+    obj->get_name(var_name);
+    
     if (args.Length() < 3)
     {
+        char error_msg[512];
+        snprintf(error_msg, sizeof(error_msg),
+                "Variable.addAttribute() for '%s': Wrong number of arguments. Expected 3 (name, type, value), but got %d",
+                var_name, args.Length());
         isolate->ThrowException(v8::Exception::TypeError(
-            v8::String::NewFromUtf8(isolate, "Wrong number of arguments", v8::NewStringType::kNormal)
+            v8::String::NewFromUtf8(isolate, error_msg, v8::NewStringType::kNormal)
                 .ToLocalChecked()));
         return;
     }
@@ -623,8 +745,17 @@ void Variable::AddAttribute(const v8::FunctionCallbackInfo<v8::Value> &args)
     int type = get_type(type_str);
     if (type == NC2_ERR)
     {
+        std::string attr_name = *v8::String::Utf8Value(
+#if NODE_MAJOR_VERSION >= 8
+            isolate,
+#endif
+            args[0]);
+        char error_msg[512];
+        snprintf(error_msg, sizeof(error_msg),
+                "Variable.addAttribute() for '%s': Unknown attribute type '%s' for attribute '%s'. Valid types are: byte, char, short, int, float, double, ubyte, ushort, uint",
+                var_name, type_str.c_str(), attr_name.c_str());
         isolate->ThrowException(v8::Exception::TypeError(
-            v8::String::NewFromUtf8(isolate, "Unknown variable type", v8::NewStringType::kNormal).ToLocalChecked()));
+            v8::String::NewFromUtf8(isolate, error_msg, v8::NewStringType::kNormal).ToLocalChecked()));
         return;
     }
     Attribute *res = new Attribute(*v8::String::Utf8Value(
